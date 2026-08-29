@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Deploy public listening app
 
 on:
   push:
@@ -22,14 +22,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate publication contents
-        run: python scripts/publication_audit.py .
-      - name: Validate web data
-        run: python scripts/validate_web_data.py
-      - name: Check JavaScript syntax
-        run: node --check web/app.js
+      - name: Publication audit
+        run: python scripts/publication_audit.py
       - name: Web smoke test
         run: python scripts/web_smoke_test.py
+      - name: Storage migration/export/import tests
+        run: node scripts/storage_roundtrip_test.js
+      - name: Storage JavaScript syntax check
+        run: node --check web/storage.js
+      - name: JavaScript syntax check
+        run: node --check web/app.js
 
   deploy:
     needs: verify
@@ -45,6 +47,6 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

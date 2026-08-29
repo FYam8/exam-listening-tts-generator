@@ -1,11 +1,9 @@
 @echo off
-setlocal
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (
-  py generate.py %*
+  py serve.py
 ) else (
-  python generate.py %*
+  python serve.py
 )
-endlocal
-
+pause

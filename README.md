@@ -1,177 +1,234 @@
-# Listening Practice Lab + TTS Generator
+# 早稲渋 Listening Step Trainer
 
-英語入試のリスニング練習用に、次の2つをまとめた非公式プロジェクトです。
+公開ページ: <https://fyam8.github.io/exam-listening-tts-generator/>
 
-1. **受験生向けWebアプリ** — URLを開いて「聞く → 答える → 採点 → 復習」
-2. **教材作成者向けTTS生成ツール** — ローカルJSONから男女別の合成音声MP3を生成
+早稲田渋谷シンガポール校の英語リスニング対策を、**過去問診断 → 間違い再診断 → スクリプト反復 → 【オリジナル類題】 → 2〜4日後の定着確認 → 次年度**の順で進める非公式学習Webアプリです。
 
-> [!IMPORTANT]
-> 本プロジェクトは**非公式**です。使用する音声は**合成音声**であり、学校の公式ツール・公式音源ではありません。実際の入試の声質・速度・イントネーション・間を完全再現するものではありません。公開リポジトリには公式過去問本文、公式リスニングスクリプト全文、公式音源、ロゴ、問題冊子PDF、スキャン画像を含めないでください。
+## 重要
 
-## Webアプリ
+- 学校公式のアプリ・公式音源ではありません。
+- 音声はブラウザの合成音声です。
+- 実際の入試音源の声質、正確な話速、問題間の無音時間を再現したものではありません。
+- Private Packには、ユーザーが提供した2019〜2026年度の問題冊子・公式解答・公式リスニングスクリプトをもとに構造化した個人学習用データが含まれます。
+- **`private-content/` は公開GitHubリポジトリやGitHub Pagesへアップロードしないでください。**
+- 公開用 `web/` に含まれる類題はすべて【オリジナル類題】です。
 
-`web/` がGitHub Pagesでそのまま動く静的Webアプリです。
+## すぐ使う
 
-公開ページ：<https://fyam8.github.io/exam-listening-tts-generator/>
+### Windows
 
-### できること
+1. ZIPを展開
+2. `START_WINDOWS.bat` をダブルクリック
+3. ブラウザで開いた画面から「今日の学習を始める」
 
-- 本番モード：各問題の音声は原則1回、途中で正解を表示しない
-- 復習モード：再生し直し、正解・根拠・ひっかけ・重要表現を確認
-- ア・イ・ウ・エ形式の選択回答
-- 全問終了後にまとめて採点
-- A/B/C別の正答状況
-- 最終決定・情報変更・時刻・金額などのタグ別分析
-- LocalStorageへの学習履歴保存
-- スマホ / iPad / PC対応
-- APIキー不要
-- ローカルJSON読込
-- ブラウザのWeb Speech APIによる男声・女声・ナレーターの使い分け
+### macOS / Linux
 
-内蔵問題はすべて**【オリジナル類題】**です。
+1. ZIPを展開
+2. `START_MAC_LINUX.command` を実行
+3. ブラウザで開いた画面から「今日の学習を始める」
 
-### ローカルで確認
+または:
 
 ```bash
-python -m http.server 8000 -d web
+python3 serve.py
 ```
 
-ブラウザで `http://localhost:8000` を開きます。
+既定では `http://127.0.0.1:8765/web/` が開きます。ローカル版では `private-content/official_waseshibu_listening_2019_2026.private.json` の自動読込を試します。
 
-`file://` で `web/index.html` を直接開いても、内蔵デモはフォールバックデータで動作します。
+自動読込できない場合は、画面の **「Private Packを読み込む」** から同ファイルを選択してください。
 
-### 自分の問題をローカルで使う
+## 固定した学習ルート
 
-`web/examples/local-set-template.json` を参考にJSONを作り、Web画面の「ローカルJSONを読み込む」から選択します。
+年度を単純に2019→2026と解くのではなく、未見過去問を診断資源として使います。
 
-```json
-{
-  "id": "my-set",
-  "title": "My Local Set",
-  "questions": [
-    {
-      "number": 1,
-      "dialogue": [
-        {"role": "male", "text": "Example."},
-        {"role": "female", "text": "Example response."}
-      ],
-      "question": "What happened?",
-      "choices": ["A", "B", "C", "D"],
-      "correct": 0,
-      "points": 2,
-      "difficulty": "A",
-      "tags": ["detail"],
-      "review": {
-        "reason": "根拠",
-        "trap": "ひっかけ",
-        "expressions": ["important phrase"]
-      }
-    }
-  ]
-}
+1. **2023年度** — 初回総合診断
+2. **2019〜2022から弱点に合う1年度** — 自動選択
+3. 条件未達なら **もう1年度だけ**
+4. **2024年度** — 中間・直近型チェック
+5. **2019〜2022の残り** — 弱点に合わせて回す
+6. **2025年度** — 直近型模試
+7. 弱点補強
+8. **2026年度** — 最終未見模試
+
+2024へ進む目安は、直前の未見旧年度で:
+
+- 16/20以上
+- A問題失点0
+- 最重要弱点の類題で仮合格
+
+です。条件未達でも、旧年度を2つ使ったら2024へ進みます。これは学校公式基準ではなく、受験戦略上の管理ルールです。
+
+## 間違えたときの流れ
+
+初回過去問を終えると、まず **得点だけ** を表示します。正解はまだ表示しません。
+
+1. 間違い問題をスクリプトなし・正解なしで **もう1回だけ** 聞く
+2. 再回答後に初めて正解を開示
+3. スクリプトを見ながら全文再生
+4. `but / however / actually / instead / at first / originally / still / not / only / before / after` などを必要に応じて強調
+5. 1文再生 / ×5反復 / 0.85・1.00・1.05倍 / シャドーイング
+6. スクリプトを隠して聞き直す
+7. 同技能の【オリジナル類題】3問
+8. 3/3なら仮合格、2/3なら2問追加して合計4/5以上で仮合格、0〜1/3なら復習へ戻る
+9. 2〜4日後に類題で定着確認
+
+同じ過去問で正解できるようになっても、「習得」とは判定しません。習得判定は類題で行います。
+
+## 記録する弱点
+
+### 出題技能
+
+- `NEXT` 次の自然な発言
+- `CHANGE` 最終決定・情報変更
+- `NOT` した／しなかった
+- `TIME` 時刻・所要時間
+- `MONEY` 金額・数量
+- `PLACE` 場所
+- `REASON` 理由
+- `PURPOSE` 目的・話者
+- `DETAIL` 内容一致
+- `MAIN` 要点
+- `TRUEFALSE` true / not true
+
+### ミス原因
+
+- `HEAR` 音として聞こえなかった
+- `VOCAB` 語彙・表現
+- `MEANING` 意味処理
+- `UPDATE` 情報更新
+- `CALC` 計算
+- `QUESTION` 設問読み違い
+- `MEMO` メモ不足
+- `CARELESS` ケアレス
+
+## 得点の扱い
+
+各年度のリスニングは20点として管理します。
+
+学習上の目安:
+
+- 14/20: 守る
+- 16/20: 安定
+- 18/20: 上積み
+
+これは学校公式最低点・合格基準ではありません。
+
+**初回得点は絶対に上書きしません。** 復習後や再受験の結果は別扱いです。
+
+## 大問1 / 大問2
+
+大問1は短い会話6問。初回試験画面では、実際の問題冊子に合わせて選択肢を表示し、質問文そのものは音声で読み上げます。
+
+大問2は長めの話2題×各2問。問題冊子に印刷されている質問文と選択肢を表示します。
+
+大問2の2つの質問の間には、合成音声練習用として約6秒の回答間隔を入れています。**学校公式音源の正確な無音時間が資料から確認できるわけではありません。**
+
+
+## バージョンアップ時の学習履歴保護
+
+学習履歴は、アプリのバージョン番号を含まない固定キー:
+
+```text
+waseshibu-listening-progress
 ```
 
-`correct` は **0始まり**です。0=ア、1=イ、2=ウ、3=エ。
+に保存します。
 
-ローカルJSONはアプリのJavaScriptが端末上で読み込みます。このサイト自身がファイルをサーバーへアップロードする処理はありません。ただしWeb Speech APIの音声合成は、ブラウザやOSによってオンライン処理される場合があります。
+今後アプリを更新しても、この保存キーを変更しない方針です。旧版の
+`waseshibu-step-progress-v1` が残っている場合は、新版起動時に自動移行します。
 
-## GitHub Pages公開
+さらに:
 
-1. このリポジトリをGitHubへpush
-2. Repository **Settings → Pages**
-3. Sourceを **GitHub Actions** に設定
-4. `main` にpushすると `.github/workflows/pages.yml` が `web/` を公開
+- 更新前の有効データを自動バックアップ
+- Primaryデータが破損した場合はバックアップから自動復旧
+- 旧版互換キーにもミラー保存
+- schema versionはデータ内部で管理し、保存キーには付けない
+- 未知の将来フィールドをできるだけ保持
 
-公開前に必ず：
+という設計にしています。
 
-```bash
-python scripts/publication_audit.py .
-python scripts/validate_web_data.py
-```
+したがって、**同じブラウザ・同じサイトoriginで使い続け、ブラウザのサイトデータを削除しない限り、エクスポート操作をしていなくても通常のアプリ更新で学習履歴は残ります。**
 
-## TTS生成ツール
+ただし、次の場合はブラウザ保存だけでは保証できません。
 
-既存の `generate.py` もそのまま残しています。高品質な事前生成MP3が必要な場合はこちらを使います。
+- ブラウザの「サイトデータを消去」を実行した
+- シークレット/プライベートモードのデータが消えた
+- 別のブラウザ・別端末へ移動した
+- サイトのドメイン/ポートなどorigin自体が変わった
 
-### 必要環境
+そのため、端末変更に備える場合はエクスポート機能も利用できます。
 
-- Python 3.10+
-- インターネット接続（TTS生成時）
+## 学習履歴のエクスポート / インポート
 
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Windowsは .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
+ダッシュボードの「過去問データ」カードに:
 
-### 基本
+- **進捗をエクスポート**
+- **進捗をインポート**
 
-```bash
-python generate.py validate --input scripts/private/my.private.json
+を追加しています。
 
-python generate.py generate \
-  --input scripts/private/my.private.json \
-  --output output/practice.mp3
-```
+エクスポート対象:
 
-利用可能音声：
+- 初回得点
+- A問題失点
+- 過去問受験履歴
+- 再診断情報
+- ミス原因
+- 弱点技能
+- 類題・定着状態
+- 学習ルートの進行状態
 
-```bash
-python generate.py voices --locale en-US
-python generate.py voices --locale en-GB
-```
+エクスポート対象外:
 
-詳細設定は `config.example.json`、入力例は `examples/sample_script.json` を参照してください。
-
-## 早稲渋対策としての設計
-
-Webのオリジナル問題は、全文を完全に聞き取るよりも「正解に必要な情報を1回で拾う」ことを意識しています。
-
-重点タグ：
-
-- 次に来る自然な発言
-- 最終決定
-- 情報変更 / 予定変更
-- したこと / しなかったこと
-- 場所
-- 時刻 / 所要時間
-- 金額 / 数量
-- 理由 / 目的
-- 内容一致 / 要点
-
-A問題の取りこぼしは、結果画面で優先的に警告します。
-
-## 公開時の著作権・安全方針
-
-公開してよいもの：
-
-- コード
-- 完全オリジナルのサンプル問題
-- オリジナル問題の解説
-- 一般的な設定例
-
-公開しないもの：
-
+- 公式Private Pack
 - 公式過去問本文
-- 公式リスニングスクリプト全文
-- 公式音源
-- 学校ロゴ
-- 問題冊子PDF / スキャン
-- 個人用の私的教材JSON
-- APIキーや認証情報
+- 公式スクリプト
+- 音源
 
-正規に入手した教材であっても、公開・再配布できるとは限りません。
+インポートは単純上書きではなく**安全統合**です。
 
-## テスト
+- 最も古い「初回得点」を保持
+- 別年度の履歴を統合
+- 再受験履歴を重複排除して統合
+- ミス原因・再診断・完了グループを統合
+- 新しいmastery状態を優先
+- 既存の進行中タスクを優先
+
+新形式のエクスポートファイルにはチェックサムを付け、破損・改変されたファイルはインポート時に拒否します。旧版の生progress JSONも互換インポートできます。
+
+## データ保存
+
+進捗、初回得点、弱点、定着状態、Private PackはブラウザのLocalStorageへ保存します。
+
+サーバーへ学習履歴を送信する実装はありません。ただし、Web Speech APIの音声合成は端末・ブラウザによってオンライン処理を使う場合があります。
+
+## GitHub Pagesで公開する場合
+
+**公開用ZIPを使ってください。** Private Packは含まれていません。
+
+GitHub Pages公開後、利用者が各自の正規なPrivate Packをブラウザで読み込む構成です。
+
+公開対象は `web/` のみです。`.github/workflows/pages.yml` は `web/` だけをデプロイします。
+
+公開前:
 
 ```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest
-python scripts/publication_audit.py .
-python scripts/validate_web_data.py
+python scripts/publication_audit.py
+node scripts/storage_roundtrip_test.js
+node --check web/storage.js
+node --check web/app.js
+```
+
+## 検証
+
+```bash
+python scripts/publication_audit.py
+python scripts/web_smoke_test.py
+node scripts/storage_roundtrip_test.js
+node --check web/storage.js
 node --check web/app.js
 ```
 
 ## License
 
-コードはMIT Licenseです。利用者が入力する教材や生成物にMIT Licenseが自動適用されるわけではありません。
+プログラムコードはMIT Licenseです。Private Pack、過去問、公式スクリプト、ユーザーが読み込む教材にはMIT Licenseは適用されません。

@@ -2,234 +2,258 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
-  <meta name="theme-color" content="#111827">
-  <meta name="description" content="非公式の入試リスニング練習Webアプリ。URLを開いて、聞いて、答えて、復習できます。">
-  <title>Listening Practice Lab</title>
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="早稲渋英語リスニングのステップ学習用・非公式Webアプリ">
+  <title>早稲渋 Listening Step Trainer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="shell header-inner">
-      <div>
-        <p class="eyebrow">非公式・合成音声</p>
-        <h1>Listening Practice Lab</h1>
-        <p class="subtitle">早稲渋対策を意識した「聞く → 答える → 復習」</p>
-      </div>
-      <button id="historyButton" class="ghost-button" type="button">学習履歴</button>
+<header class="site-header">
+  <div class="shell header-row">
+    <div>
+      <p class="eyebrow">PRIVATE STUDY / NON-OFFICIAL</p>
+      <h1>早稲渋 Listening Step Trainer</h1>
+      <p class="header-sub">過去問診断 → 再診断 → スクリプト反復 → 類題 → 定着確認 → 次年度</p>
     </div>
-  </header>
+    <div class="button-row"><button id="historyBtn" class="ghost light" type="button">初回履歴</button><button id="dashboardBtn" class="ghost light" type="button">ダッシュボード</button></div>
+  </div>
+</header>
 
-  <main class="shell">
-    <section id="homeView" class="view">
-      <div class="notice">
-        <strong>公開版には公式過去問・公式スクリプト・公式音源を含みません。</strong>
-        <span>内蔵問題は【オリジナル類題】です。自分のJSONは端末からローカル読込できます。</span>
-      </div>
+<main class="shell">
+  <div id="globalNotice" class="notice">
+    <strong>非公式の学習補助ツールです。</strong>
+    <span>合成音声は実際の入試音源ではありません。初回得点は「過去問スクリプトを使った合成音声練習得点」として保存します。</span>
+  </div>
 
-      <div class="grid two-col">
-        <section class="card">
-          <p class="card-kicker">Practice set</p>
-          <h2 id="setTitle">読み込み中…</h2>
-          <p id="setSubtitle" class="muted"></p>
-          <div id="setStats" class="stat-row"></div>
+  <section id="dashboardView" class="view">
+    <div class="grid two">
+      <section class="card today-card">
+        <p class="kicker">TODAY</p>
+        <h2>今日やること</h2>
+        <div id="todayTask"></div>
+        <button id="todayStartBtn" class="primary wide" type="button">今日の学習を始める</button>
+      </section>
 
-          <div class="mode-grid" role="radiogroup" aria-label="学習モード">
-            <button class="mode-card selected" type="button" data-mode="exam" aria-pressed="true">
-              <span class="mode-title">本番モード</span>
-              <span>各問題の音声は原則1回。途中で正解を表示しません。</span>
-            </button>
-            <button class="mode-card" type="button" data-mode="review" aria-pressed="false">
-              <span class="mode-title">復習モード</span>
-              <span>再生し直しながら、解説を確認できます。</span>
-            </button>
-          </div>
+      <section class="card">
+        <p class="kicker">DATA</p>
+        <h2>過去問データ</h2>
+        <div id="dataStatus"></div>
+        <div class="button-row">
+          <label class="secondary file-label">Private Packを読み込む
+            <input id="packInput" type="file" accept=".json,application/json">
+          </label>
+          <button id="forgetPackBtn" class="ghost" type="button">保存データを外す</button>
+        </div>
+        <p class="small">Private PackはブラウザのLocalStorageに保存します。公開用GitHub Pagesには公式本文を含めません。</p>
 
-          <div class="action-row">
-            <button id="startButton" class="primary-button" type="button">試験開始</button>
-            <label class="secondary-button file-button">
-              ローカルJSONを読み込む
-              <input id="fileInput" type="file" accept=".json,application/json">
+        <div class="data-protection">
+          <strong>学習履歴の保護</strong>
+          <p id="storageStatus" class="small"></p>
+          <div class="button-row">
+            <button id="exportProgressBtn" class="secondary" type="button">進捗をエクスポート</button>
+            <label class="secondary file-label">進捗をインポート
+              <input id="progressImportInput" type="file" accept=".json,application/json">
             </label>
           </div>
-          <p class="microcopy">
-            ローカルJSONはこのWebアプリのJavaScriptで読み込みます。このサイト自身はファイルをサーバーへ送信しません。
-            ただし音声合成はブラウザ/OSの機能を使うため、環境によってオンライン処理される場合があります。
-          </p>
-        </section>
-
-        <section class="card">
-          <p class="card-kicker">Audio</p>
-          <h2>音声設定</h2>
-          <p id="ttsSupport" class="muted">音声エンジンを確認しています…</p>
-
-          <label class="field">
-            <span>英語プリセット</span>
-            <select id="localePreset">
-              <option value="mixed">Mixed (US / UK)</option>
-              <option value="us">US English</option>
-              <option value="uk">UK English</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>話速 <strong id="rateValue">1.00×</strong></span>
-            <input id="rateSlider" type="range" min="0.80" max="1.15" step="0.01" value="1.00">
-          </label>
-
-          <details>
-            <summary>詳細な声の設定</summary>
-            <div class="voice-grid">
-              <label class="field">
-                <span>Man</span>
-                <select id="maleVoice"></select>
-              </label>
-              <label class="field">
-                <span>Woman</span>
-                <select id="femaleVoice"></select>
-              </label>
-              <label class="field">
-                <span>Narrator</span>
-                <select id="narratorVoice"></select>
-              </label>
-            </div>
-          </details>
-
-          <button id="voiceTestButton" class="secondary-button" type="button">音声テスト</button>
-          <p class="microcopy">ブラウザにインストールされている英語音声を自動選択します。端末によって声質は異なります。</p>
-        </section>
-      </div>
-
-      <section class="card compact-card">
-        <div class="section-heading">
-          <div>
-            <p class="card-kicker">How it works</p>
-            <h2>本番モードの流れ</h2>
-          </div>
-        </div>
-        <ol class="flow-list">
-          <li><span>1</span> 問題を開く</li>
-          <li><span>2</span> Number → 会話 → Question を1回聞く</li>
-          <li><span>3</span> ア・イ・ウ・エから回答</li>
-          <li><span>4</span> 全問終了後にまとめて採点</li>
-          <li><span>5</span> A/B・弱点タグ・解説で復習</li>
-        </ol>
-      </section>
-    </section>
-
-    <section id="quizView" class="view hidden" aria-live="polite">
-      <div class="quiz-topbar">
-        <button id="quitButton" class="ghost-button" type="button">終了</button>
-        <div class="progress-wrap">
-          <div class="progress-meta">
-            <span id="progressText">Question 1 / 6</span>
-            <span id="modeBadge" class="badge">本番</span>
-          </div>
-          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        </div>
-      </div>
-
-      <section class="card quiz-card">
-        <div class="question-head">
-          <div>
-            <p id="questionNumber" class="card-kicker">Question 1</p>
-            <h2 id="questionPrompt" class="question-prompt visually-hidden"></h2>
-          </div>
-          <div id="difficultyBadge" class="difficulty-badge">A</div>
-        </div>
-
-        <div class="audio-panel">
-          <div class="audio-status-row">
-            <span id="audioIcon" class="audio-icon" aria-hidden="true">▶</span>
-            <div>
-              <strong id="audioStatus">準備完了</strong>
-              <p id="audioHint" class="muted">「音声を再生」を押してください。</p>
-            </div>
-          </div>
-          <button id="playButton" class="primary-button wide-button" type="button">音声を再生</button>
-        </div>
-
-        <div id="choices" class="choices" role="radiogroup" aria-label="選択肢"></div>
-
-        <div class="quiz-actions">
-          <button id="prevButton" class="secondary-button" type="button">前へ</button>
-          <button id="nextButton" class="primary-button" type="button">次へ</button>
-        </div>
-
-        <section id="inlineReview" class="inline-review hidden"></section>
-      </section>
-    </section>
-
-    <section id="resultView" class="view hidden">
-      <section class="card result-hero">
-        <p class="card-kicker">Result</p>
-        <h2>結果</h2>
-        <div class="score-ring" id="scoreRing">
-          <strong id="scorePercent">0%</strong>
-          <span id="scoreRaw">0 / 0</span>
-        </div>
-        <p id="resultMessage" class="result-message"></p>
-        <div id="lineStatus" class="line-status hidden"></div>
-      </section>
-
-      <div class="grid two-col">
-        <section class="card">
-          <p class="card-kicker">A / B / C</p>
-          <h2>難度別</h2>
-          <div id="difficultyResults" class="bar-list"></div>
-        </section>
-
-        <section class="card">
-          <p class="card-kicker">Weakness</p>
-          <h2>技能タグ別</h2>
-          <div id="tagResults" class="tag-results"></div>
-        </section>
-      </div>
-
-      <section class="card">
-        <div class="section-heading">
-          <div>
-            <p class="card-kicker">Review</p>
-            <h2>問題別</h2>
-          </div>
-          <button id="toggleAllReview" class="secondary-button" type="button">すべて開く</button>
-        </div>
-        <div id="questionResults" class="question-results"></div>
-      </section>
-
-      <div class="action-row bottom-actions">
-        <button id="retryButton" class="primary-button" type="button">もう一度</button>
-        <button id="homeButton" class="secondary-button" type="button">ホームへ</button>
-      </div>
-    </section>
-
-    <section id="historyView" class="view hidden">
-      <section class="card">
-        <div class="section-heading">
-          <div>
-            <p class="card-kicker">History</p>
-            <h2>学習履歴</h2>
-          </div>
-          <button id="historyBackButton" class="ghost-button" type="button">戻る</button>
-        </div>
-        <div id="historyList"></div>
-        <div class="action-row">
-          <button id="clearHistoryButton" class="danger-button" type="button">履歴を消去</button>
+          <p class="small">同じブラウザ・同じサイトのままバージョンアップする限り、エクスポートしなくても学習履歴を自動移行します。エクスポートには公式Private Packを含めません。</p>
         </div>
       </section>
-    </section>
-  </main>
-
-  <footer>
-    <div class="shell">
-      <p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。学校による承認・提携・監修を受けたものではありません。</p>
     </div>
-  </footer>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="kicker">ROADMAP</p>
+          <h2>2019–2026 学習ロードマップ</h2>
+        </div>
+        <button id="resetProgressBtn" class="danger ghost" type="button">進捗をリセット</button>
+      </div>
+      <div id="roadmap" class="roadmap"></div>
+    </section>
 
-  <script src="data/demo-data.js"></script>
-  <script src="app.js"></script>
+    <div class="grid two">
+      <section class="card">
+        <p class="kicker">WEAKNESS</p>
+        <h2>現在の弱点</h2>
+        <div id="weaknessPanel"></div>
+      </section>
+      <section class="card">
+        <p class="kicker">RETENTION</p>
+        <h2>定着確認</h2>
+        <div id="retentionPanel"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <p class="kicker">AUDIO</p>
+      <h2>読み上げ設定</h2>
+      <div class="grid three">
+        <label class="field"><span>話速</span><input id="rateSlider" type="range" min="0.80" max="1.10" step="0.01" value="1.00"><strong id="rateLabel">1.00×</strong></label>
+        <label class="field"><span>Man</span><select id="maleVoice"></select></label>
+        <label class="field"><span>Woman</span><select id="femaleVoice"></select></label>
+      </div>
+      <div class="grid two">
+        <label class="field"><span>Narrator</span><select id="narratorVoice"></select></label>
+        <div class="field"><span>確認</span><button id="voiceTestBtn" class="secondary" type="button">音声テスト</button></div>
+      </div>
+      <p id="voiceStatus" class="small"></p>
+    </section>
+  </section>
+
+  <section id="examView" class="view hidden">
+    <div class="topline">
+      <button id="examQuitBtn" class="ghost" type="button">終了</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><strong id="examTitle"></strong><span id="examProgressText"></span></div>
+        <div class="track"><div id="examProgressBar" class="bar"></div></div>
+      </div>
+    </div>
+    <section class="card exam-card">
+      <div class="section-head">
+        <div><p id="examSectionLabel" class="kicker"></p><h2 id="examStimulusLabel"></h2></div>
+        <span class="pill">音声1回</span>
+      </div>
+      <div class="audio-box">
+        <div><strong id="examAudioStatus">準備完了</strong><p class="small">選択肢は先に確認できます。スクリプトは表示されません。</p></div>
+        <button id="examPlayBtn" class="primary" type="button">音声を再生</button>
+      </div>
+      <div id="examQuestions"></div>
+      <div class="button-row end">
+        <button id="examNextBtn" class="primary" type="button">次へ</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="scoreOnlyView" class="view hidden">
+    <section class="card center">
+      <p class="kicker">INITIAL RESULT</p>
+      <h2>初回結果</h2>
+      <div id="initialScoreRing" class="score-ring"><strong id="initialScore"></strong><span>/ 20</span></div>
+      <p id="initialScoreMessage" class="lead"></p>
+      <div class="notice subtle">
+        <strong>まだ正解は表示しません。</strong>
+        <span>間違えた問題を、正解を知らない状態でもう1回だけ聞いて再診断します。</span>
+      </div>
+      <div class="button-row center-row">
+        <button id="startRediagnosisBtn" class="primary" type="button">間違いを再診断する</button>
+        <button id="scoreHomeBtn" class="secondary" type="button">後で続ける</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="rediagnosisView" class="view hidden">
+    <div class="topline">
+      <button id="rediagnosisQuitBtn" class="ghost" type="button">後で続ける</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><strong>再診断</strong><span id="rediagnosisProgress"></span></div>
+        <div class="track"><div id="rediagnosisBar" class="bar"></div></div>
+      </div>
+    </div>
+    <section class="card">
+      <p class="kicker">STEP 1 / REDIAGNOSE</p>
+      <h2 id="rediagnosisTitle"></h2>
+      <div class="audio-box">
+        <div><strong id="rediagnosisAudioStatus">正解はまだ非表示です</strong><p class="small">スクリプトなしで、もう1回だけ聞きます。</p></div>
+        <button id="rediagnosisPlayBtn" class="primary" type="button">もう1回だけ聞く</button>
+      </div>
+      <div id="rediagnosisQuestions"></div>
+      <div class="button-row end">
+        <button id="rediagnosisSubmitBtn" class="primary" type="button">再回答を確定</button>
+      </div>
+      <div id="rediagnosisResult" class="hidden"></div>
+    </section>
+  </section>
+
+  <section id="scriptView" class="view hidden">
+    <section class="card">
+      <div class="section-head">
+        <div><p class="kicker">STEP 2–5 / SCRIPT PRACTICE</p><h2 id="scriptTitle"></h2></div>
+        <span id="scriptSkillBadge" class="pill"></span>
+      </div>
+
+      <div id="answerReveal" class="answer-reveal"></div>
+
+      <div class="practice-controls">
+        <button id="fullReplayBtn" class="primary" type="button">全文を再生</button>
+        <button id="hideScriptBtn" class="secondary" type="button">スクリプトを隠す</button>
+        <button id="highlightBtn" class="secondary" type="button">情報更新語を強調</button>
+        <button id="shadowBtn" class="secondary" type="button">シャドーイング</button>
+        <label class="speed-control">速度
+          <select id="practiceSpeed">
+            <option value="0.85">0.85×</option>
+            <option value="1" selected>1.00×</option>
+            <option value="1.05">1.05×</option>
+          </select>
+        </label>
+      </div>
+
+      <p class="small">各文の ▶ で1文再生、×5で同じ文を5回反復できます。大問2は聞けなかった区間だけを反復してください。</p>
+      <div id="scriptText" class="script-box"></div>
+
+      <h3>ミス原因</h3>
+      <p class="small">「何を問われたか」と「なぜ間違えたか」を分けて記録します。</p>
+      <div id="causePanel"></div>
+
+      <div class="button-row end">
+        <button id="startDrillBtn" class="primary" type="button">同タイプの【オリジナル類題】へ</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="drillView" class="view hidden">
+    <div class="topline">
+      <button id="drillQuitBtn" class="ghost" type="button">後で続ける</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><strong id="drillTagTitle"></strong><span id="drillProgress"></span></div>
+        <div class="track"><div id="drillBar" class="bar"></div></div>
+      </div>
+    </div>
+    <section class="card">
+      <p class="kicker">ORIGINAL PRACTICE</p>
+      <h2>【オリジナル類題】</h2>
+      <div class="audio-box">
+        <div><strong id="drillAudioStatus">1回で必要情報を拾う</strong><p class="small">正解後に短い解説を確認できます。</p></div>
+        <button id="drillPlayBtn" class="primary" type="button">音声を再生</button>
+      </div>
+      <p id="drillQuestion" class="question-text"></p>
+      <div id="drillChoices"></div>
+      <div class="button-row end"><button id="drillSubmitBtn" class="primary" type="button">回答する</button></div>
+      <div id="drillFeedback" class="feedback hidden"></div>
+    </section>
+  </section>
+
+  <section id="retentionView" class="view hidden">
+    <section class="card">
+      <p class="kicker">2–4 DAY CHECK</p>
+      <h2 id="retentionTitle">定着確認</h2>
+      <p class="lead">スクリプトを見ず、未見扱いの類題を1回で解きます。</p>
+      <div class="audio-box">
+        <div><strong id="retentionAudioStatus">準備完了</strong></div>
+        <button id="retentionPlayBtn" class="primary" type="button">音声を再生</button>
+      </div>
+      <p id="retentionQuestion" class="question-text"></p>
+      <div id="retentionChoices"></div>
+      <div class="button-row end"><button id="retentionSubmitBtn" class="primary" type="button">定着判定</button></div>
+      <div id="retentionFeedback" class="feedback hidden"></div>
+    </section>
+  </section>
+
+  <section id="historyView" class="view hidden">
+    <section class="card">
+      <div class="section-head"><div><p class="kicker">HISTORY</p><h2>初回得点の履歴</h2></div><button id="historyCloseBtn" class="ghost" type="button">戻る</button></div>
+      <div id="historyTable"></div>
+    </section>
+  </section>
+</main>
+
+<footer><div class="shell"><p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。Private Pack内の公式過去問データは個人学習用です。</p></div></footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="storage.js"></script>
+<script src="original_bank.js"></script>
+<script src="public_demo.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

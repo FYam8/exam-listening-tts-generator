@@ -1,60 +1,49 @@
-# GitHub / GitHub Pages 公開手順
+# GitHub公開手順
 
-## 1. 公開前チェック
+公開用ZIPには `private-content/` を含めていません。
+
+1. GitHubで空のリポジトリを作成
+2. 公開用ZIPの中身をpush
+3. Settings → Pages → Source → GitHub Actions
+4. `main`へpushすると `web/` のみが公開される
 
 ```bash
-python scripts/publication_audit.py .
-python scripts/validate_web_data.py
-python -m pytest
+python scripts/publication_audit.py
+python scripts/web_smoke_test.py
+node scripts/storage_roundtrip_test.js
+node --check web/storage.js
 node --check web/app.js
-```
 
-さらに必ず目視で確認してください。
-
-公開リポジトリに含めないもの：
-
-- 公式過去問本文
-- 公式リスニングスクリプト全文
-- 公式音源
-- 学校ロゴ
-- PDF / スキャン
-- `scripts/private/` の私用教材
-- APIキーや認証情報
-
-## 2. GitHubへpush
-
-```bash
 git init
 git add .
-git commit -m "Add listening practice web app"
+git commit -m "Initial listening step trainer"
 git branch -M main
 git remote add origin https://github.com/FYam8/exam-listening-tts-generator.git
 git push -u origin main
 ```
 
-## 3. GitHub Pagesを有効化
+GitHub Pages上ではPrivate Packは配信されません。利用者本人がブラウザの「Private Packを読み込む」からローカルファイルを選択します。
 
-Repository:
+## 絶対に公開しない
 
-**Settings → Pages → Build and deployment → Source → GitHub Actions**
+- `private-content/`
+- `*.private.json`
+- 公式問題冊子PDF
+- 公式解答PDF
+- 公式リスニングスクリプトPDF
+- 公式音源
+- 学校ロゴやスキャン
 
-`main` へのpushで `.github/workflows/pages.yml` が `web/` を公開します。
+公開版の類題はすべてオリジナルです。
 
-## 4. 公開後の確認
 
-スマホ・PCの両方で以下を確認してください。
+## 学習履歴とアップデート
 
-- ホーム画面が表示される
-- 音声テストが鳴る
-- 本番モードで同じ問題を再再生できない
-- 4択を選択できる
-- 最後に採点される
-- A/B/Cと技能タグが表示される
-- 復習詳細が開く
-- 学習履歴が保存される
-- ローカルJSONを読み込める
+GitHub Pages上の学習履歴は、バージョン番号を含まない固定LocalStorageキー
+`waseshibu-listening-progress`
+に保存します。
 
-## 注意
+`main`へ新しいWebアプリをデプロイしても、同じoriginである限り学習履歴は自動継続します。
+今後のバージョンでもこのキーを変更しないでください。データ構造変更は `schemaVersion` と migration で処理します。
 
-Web版の既定音声はブラウザのWeb Speech APIです。端末により声質・音声数が異なります。
-より統一された声質が必要な場合は、既存の `generate.py` でオリジナル教材のMP3を生成し、権利上公開可能な音声だけを別途Webへ組み込んでください。
+旧キー `waseshibu-step-progress-v1` は自動移行対象です。

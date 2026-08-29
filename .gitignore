@@ -1,46 +1,26 @@
-# Local/private scripts and possible copyrighted source material
-scripts/private/*
-!scripts/private/.gitkeep
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+private-content/
 *.private.json
 *.private.jsonl
-/private/
-source-materials/
-
-# Generated audio and fragments
-output/
-outputs/
-fragments/
+*.pdf
+*.doc
+*.docx
 *.mp3
 *.wav
 *.m4a
 *.ogg
-
-# Documents/images that must not be published from this project
-*.pdf
+*.flac
 *.scan.*
-
-# Caches, environments, and editor/OS files
+output/
 .cache/
-__pycache__/
-*.py[cod]
 .pytest_cache/
 .ruff_cache/
-.venv/
-venv/
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-
-# Secrets
 .env
 .env.*
-!.env.example
 *.key
 *.pem
 credentials*.json
-
-web/data/private/
-web/audio/private/
-*.official.json
-*.exam.json
