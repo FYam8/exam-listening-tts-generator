@@ -586,7 +586,9 @@ async def generate_audio(
             )
             await provider.synthesize(item.text, settings, fragment)
             try:
-                segment = AudioSegment.from_file(fragment, format="mp3")
+                # Supplying the codec prevents pydub from invoking a separate
+                # ffprobe binary. imageio-ffmpeg already provides the decoder.
+                segment = AudioSegment.from_file(fragment, format="mp3", codec="mp3")
             except Exception as exc:
                 raise RuntimeError(f"Could not decode synthesized fragment {index}: {exc}") from exc
             segment = segment.set_frame_rate(audio_config["sample_rate"]).set_channels(audio_config["channels"])

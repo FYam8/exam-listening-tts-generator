@@ -101,7 +101,10 @@ def test_offline_mock_generates_one_valid_mp3(tmp_path: Path, monkeypatch: pytes
         from pydub.generators import Sine
 
         frequency = 440 if settings["voice"].endswith("GuyNeural") else 660
-        Sine(frequency).to_audio_segment(duration=120).apply_gain(-20).export(destination, format="mp3")
+        handle = Sine(frequency).to_audio_segment(duration=120).apply_gain(-20).export(
+            destination, format="mp3"
+        )
+        handle.close()
 
     async def fake_verify(config, item_voices=()):
         return None
@@ -123,7 +126,7 @@ def test_offline_mock_generates_one_valid_mp3(tmp_path: Path, monkeypatch: pytes
         )
     )
     assert output.stat().st_size > 1000
-    combined = AudioSegment.from_file(output, format="mp3")
+    combined = AudioSegment.from_file(output, format="mp3", codec="mp3")
     assert len(combined) >= 15_000
     assert combined.channels == 1
     assert combined.frame_rate == 24_000
