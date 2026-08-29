@@ -31,4 +31,10 @@ jobs:
         run: python scripts/publication_audit.py .
       - name: Validate sample without network
         run: python generate.py generate --dry-run --input examples/sample_script.json --output output/sample.mp3
+      - name: Validate web data
+        run: python scripts/validate_web_data.py
+      - name: Check web JavaScript syntax
+        run: node --check web/app.js
+      - name: Web smoke test
+        run: python scripts/web_smoke_test.py
 

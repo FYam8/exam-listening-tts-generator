@@ -1,0 +1,42 @@
+{
+  "id": "my-local-set",
+  "title": "My Local Listening Set",
+  "subtitle": "This file stays on your device when loaded through the web app.",
+  "sourceType": "local-private",
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "dialogue": [
+        {
+          "role": "male",
+          "text": "Write your own or lawfully usable practice text here."
+        },
+        {
+          "role": "female",
+          "text": "You can add as many dialogue turns as you need."
+        }
+      ],
+      "question": "What is the best answer?",
+      "choices": [
+        "Choice A",
+        "Choice B",
+        "Choice C",
+        "Choice D"
+      ],
+      "correct": 0,
+      "points": 2,
+      "difficulty": "A",
+      "tags": [
+        "detail"
+      ],
+      "review": {
+        "reason": "Explain the evidence here.",
+        "trap": "Explain the distractor here.",
+        "expressions": [
+          "example expression"
+        ]
+      }
+    }
+  ]
+}

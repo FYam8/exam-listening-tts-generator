@@ -39,3 +39,8 @@ Thumbs.db
 *.key
 *.pem
 credentials*.json
+
+web/data/private/
+web/audio/private/
+*.official.json
+*.exam.json

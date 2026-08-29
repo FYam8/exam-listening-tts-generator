@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="非公式の入試リスニング練習Webアプリ。URLを開いて、聞いて、答えて、復習できます。">
+  <title>Listening Practice Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <div>
+        <p class="eyebrow">非公式・合成音声</p>
+        <h1>Listening Practice Lab</h1>
+        <p class="subtitle">早稲渋対策を意識した「聞く → 答える → 復習」</p>
+      </div>
+      <button id="historyButton" class="ghost-button" type="button">学習履歴</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="homeView" class="view">
+      <div class="notice">
+        <strong>公開版には公式過去問・公式スクリプト・公式音源を含みません。</strong>
+        <span>内蔵問題は【オリジナル類題】です。自分のJSONは端末からローカル読込できます。</span>
+      </div>
+
+      <div class="grid two-col">
+        <section class="card">
+          <p class="card-kicker">Practice set</p>
+          <h2 id="setTitle">読み込み中…</h2>
+          <p id="setSubtitle" class="muted"></p>
+          <div id="setStats" class="stat-row"></div>
+
+          <div class="mode-grid" role="radiogroup" aria-label="学習モード">
+            <button class="mode-card selected" type="button" data-mode="exam" aria-pressed="true">
+              <span class="mode-title">本番モード</span>
+              <span>各問題の音声は原則1回。途中で正解を表示しません。</span>
+            </button>
+            <button class="mode-card" type="button" data-mode="review" aria-pressed="false">
+              <span class="mode-title">復習モード</span>
+              <span>再生し直しながら、解説を確認できます。</span>
+            </button>
+          </div>
+
+          <div class="action-row">
+            <button id="startButton" class="primary-button" type="button">試験開始</button>
+            <label class="secondary-button file-button">
+              ローカルJSONを読み込む
+              <input id="fileInput" type="file" accept=".json,application/json">
+            </label>
+          </div>
+          <p class="microcopy">
+            ローカルJSONはこのWebアプリのJavaScriptで読み込みます。このサイト自身はファイルをサーバーへ送信しません。
+            ただし音声合成はブラウザ/OSの機能を使うため、環境によってオンライン処理される場合があります。
+          </p>
+        </section>
+
+        <section class="card">
+          <p class="card-kicker">Audio</p>
+          <h2>音声設定</h2>
+          <p id="ttsSupport" class="muted">音声エンジンを確認しています…</p>
+
+          <label class="field">
+            <span>英語プリセット</span>
+            <select id="localePreset">
+              <option value="mixed">Mixed (US / UK)</option>
+              <option value="us">US English</option>
+              <option value="uk">UK English</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>話速 <strong id="rateValue">1.00×</strong></span>
+            <input id="rateSlider" type="range" min="0.80" max="1.15" step="0.01" value="1.00">
+          </label>
+
+          <details>
+            <summary>詳細な声の設定</summary>
+            <div class="voice-grid">
+              <label class="field">
+                <span>Man</span>
+                <select id="maleVoice"></select>
+              </label>
+              <label class="field">
+                <span>Woman</span>
+                <select id="femaleVoice"></select>
+              </label>
+              <label class="field">
+                <span>Narrator</span>
+                <select id="narratorVoice"></select>
+              </label>
+            </div>
+          </details>
+
+          <button id="voiceTestButton" class="secondary-button" type="button">音声テスト</button>
+          <p class="microcopy">ブラウザにインストールされている英語音声を自動選択します。端末によって声質は異なります。</p>
+        </section>
+      </div>
+
+      <section class="card compact-card">
+        <div class="section-heading">
+          <div>
+            <p class="card-kicker">How it works</p>
+            <h2>本番モードの流れ</h2>
+          </div>
+        </div>
+        <ol class="flow-list">
+          <li><span>1</span> 問題を開く</li>
+          <li><span>2</span> Number → 会話 → Question を1回聞く</li>
+          <li><span>3</span> ア・イ・ウ・エから回答</li>
+          <li><span>4</span> 全問終了後にまとめて採点</li>
+          <li><span>5</span> A/B・弱点タグ・解説で復習</li>
+        </ol>
+      </section>
+    </section>
+
+    <section id="quizView" class="view hidden" aria-live="polite">
+      <div class="quiz-topbar">
+        <button id="quitButton" class="ghost-button" type="button">終了</button>
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="progressText">Question 1 / 6</span>
+            <span id="modeBadge" class="badge">本番</span>
+          </div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        </div>
+      </div>
+
+      <section class="card quiz-card">
+        <div class="question-head">
+          <div>
+            <p id="questionNumber" class="card-kicker">Question 1</p>
+            <h2 id="questionPrompt" class="question-prompt visually-hidden"></h2>
+          </div>
+          <div id="difficultyBadge" class="difficulty-badge">A</div>
+        </div>
+
+        <div class="audio-panel">
+          <div class="audio-status-row">
+            <span id="audioIcon" class="audio-icon" aria-hidden="true">▶</span>
+            <div>
+              <strong id="audioStatus">準備完了</strong>
+              <p id="audioHint" class="muted">「音声を再生」を押してください。</p>
+            </div>
+          </div>
+          <button id="playButton" class="primary-button wide-button" type="button">音声を再生</button>
+        </div>
+
+        <div id="choices" class="choices" role="radiogroup" aria-label="選択肢"></div>
+
+        <div class="quiz-actions">
+          <button id="prevButton" class="secondary-button" type="button">前へ</button>
+          <button id="nextButton" class="primary-button" type="button">次へ</button>
+        </div>
+
+        <section id="inlineReview" class="inline-review hidden"></section>
+      </section>
+    </section>
+
+    <section id="resultView" class="view hidden">
+      <section class="card result-hero">
+        <p class="card-kicker">Result</p>
+        <h2>結果</h2>
+        <div class="score-ring" id="scoreRing">
+          <strong id="scorePercent">0%</strong>
+          <span id="scoreRaw">0 / 0</span>
+        </div>
+        <p id="resultMessage" class="result-message"></p>
+        <div id="lineStatus" class="line-status hidden"></div>
+      </section>
+
+      <div class="grid two-col">
+        <section class="card">
+          <p class="card-kicker">A / B / C</p>
+          <h2>難度別</h2>
+          <div id="difficultyResults" class="bar-list"></div>
+        </section>
+
+        <section class="card">
+          <p class="card-kicker">Weakness</p>
+          <h2>技能タグ別</h2>
+          <div id="tagResults" class="tag-results"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="card-kicker">Review</p>
+            <h2>問題別</h2>
+          </div>
+          <button id="toggleAllReview" class="secondary-button" type="button">すべて開く</button>
+        </div>
+        <div id="questionResults" class="question-results"></div>
+      </section>
+
+      <div class="action-row bottom-actions">
+        <button id="retryButton" class="primary-button" type="button">もう一度</button>
+        <button id="homeButton" class="secondary-button" type="button">ホームへ</button>
+      </div>
+    </section>
+
+    <section id="historyView" class="view hidden">
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="card-kicker">History</p>
+            <h2>学習履歴</h2>
+          </div>
+          <button id="historyBackButton" class="ghost-button" type="button">戻る</button>
+        </div>
+        <div id="historyList"></div>
+        <div class="action-row">
+          <button id="clearHistoryButton" class="danger-button" type="button">履歴を消去</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。学校による承認・提携・監修を受けたものではありません。</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="data/demo-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

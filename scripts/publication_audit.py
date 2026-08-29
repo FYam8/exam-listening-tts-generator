@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Fail fast on files that should not enter the public repository.
 
 This is a guardrail, not a substitute for a human copyright review.
@@ -34,7 +33,7 @@ SECRET_PATTERNS = [
 ]
 BASE64_BLOB = re.compile(r"(?:[A-Za-z0-9+/]{2000,}={0,2})")
 YEAR_SPECIFIC_MEDIA = re.compile(r"(?i)20\d{2}.*(?:listening|script|audio)|(?:listening|script|audio).*20\d{2}")
-PUBLIC_SCRIPT_ALLOWLIST = {"examples/sample_script.json"}
+PUBLIC_SCRIPT_ALLOWLIST = {"examples/sample_script.json", "web/data/demo.json", "web/examples/local-set-template.json"}
 
 
 def candidate_files(root: Path) -> list[Path]:

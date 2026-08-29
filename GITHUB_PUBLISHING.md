@@ -1,55 +1,60 @@
-# GitHub公開手順
+# GitHub / GitHub Pages 公開手順
 
-## 1. ローカル最終確認
-
-リポジトリ直下で実行します。
+## 1. 公開前チェック
 
 ```bash
-python -m pytest
 python scripts/publication_audit.py .
-python generate.py validate --input examples/sample_script.json
-git status --short
+python scripts/validate_web_data.py
+python -m pytest
+node --check web/app.js
 ```
 
-`publication_audit.py` が成功しても、著作権判断を完全に自動化できるわけではありません。`git diff --cached` を人の目でも確認します。
+さらに必ず目視で確認してください。
 
-## 2. コミット対象を限定
+公開リポジトリに含めないもの：
+
+- 公式過去問本文
+- 公式リスニングスクリプト全文
+- 公式音源
+- 学校ロゴ
+- PDF / スキャン
+- `scripts/private/` の私用教材
+- APIキーや認証情報
+
+## 2. GitHubへpush
 
 ```bash
 git init
-git add .gitignore README.md LICENSE CONTRIBUTING.md GITHUB_PUBLISHING.md SECURITY.md \
-  generate.py requirements.txt requirements-dev.txt config.example.json \
-  examples tests scripts docs .github
-git diff --cached --name-only
-git diff --cached
-```
-
-次が含まれていたら公開を中止して、ステージから外してください。
-
-- 公式過去問本文・公式スクリプト・公式音源
-- ロゴ、PDF、スキャン画像
-- `scripts/private/`、`*.private.json`、生成MP3
-- APIキー、トークン、メールアドレス等
-
-## 3. GitHubで空のリポジトリを作成
-
-GitHubの **New repository** から作成します。公開範囲（Public / Private）は所有者が最終決定してください。GitHub側でREADMEやLICENSEを追加せず、空の状態にすると競合を避けられます。
-
-## 4. push
-
-```bash
+git add .
+git commit -m "Add listening practice web app"
 git branch -M main
-git remote add origin https://github.com/<OWNER>/<REPOSITORY>.git
-git commit -m "Initial public release"
+git remote add origin https://github.com/FYam8/exam-listening-tts-generator.git
 git push -u origin main
 ```
 
-認証画面や二要素認証は、GitHubの案内に従って所有者が操作してください。パスワードやトークンをコード、設定ファイル、チャットへ貼り付けないでください。
+## 3. GitHub Pagesを有効化
 
-## 5. 公開後
+Repository:
 
-- GitHub Actionsが成功しているか確認
-- README冒頭の非公式・合成音声明記を確認
-- リポジトリ内検索で学校公式資料がないことを再確認
-- 必要に応じてRepository settingsでIssues、Dependabot、Private vulnerability reportingを設定
+**Settings → Pages → Build and deployment → Source → GitHub Actions**
 
+`main` へのpushで `.github/workflows/pages.yml` が `web/` を公開します。
+
+## 4. 公開後の確認
+
+スマホ・PCの両方で以下を確認してください。
+
+- ホーム画面が表示される
+- 音声テストが鳴る
+- 本番モードで同じ問題を再再生できない
+- 4択を選択できる
+- 最後に採点される
+- A/B/Cと技能タグが表示される
+- 復習詳細が開く
+- 学習履歴が保存される
+- ローカルJSONを読み込める
+
+## 注意
+
+Web版の既定音声はブラウザのWeb Speech APIです。端末により声質・音声数が異なります。
+より統一された声質が必要な場合は、既存の `generate.py` でオリジナル教材のMP3を生成し、権利上公開可能な音声だけを別途Webへ組み込んでください。
