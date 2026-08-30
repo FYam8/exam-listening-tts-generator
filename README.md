@@ -21,6 +21,10 @@
 
 学習は2023年度から始めます。最近の傾向に近い問題で弱点を診断し、2019〜2022年度で補強したうえで、2024年度を中間確認、2025・2026年度を仕上げの模試に使う設計です。
 
+- 6割ライン: 12/20
+- 安定目標: 14/20
+- 「今日やること」に、毎日1つ進めた場合の残り想定日数を表示
+
 ## 読み上げ音声
 
 - Man欄には端末内の男性候補、Woman欄には女性候補だけを表示
@@ -47,9 +51,11 @@ python scripts/publication_audit.py
 python scripts/authorized_public_audit.py
 python scripts/web_smoke_test.py
 node scripts/storage_roundtrip_test.js
+node scripts/study_plan_test.js
 node scripts/voice_assignment_test.js
 node scripts/bundled_pack_runtime_test.js
 node --check web/voice_profiles.js
+node --check web/study_plan.js
 node --check web/storage.js
 node --check web/app.js
 ```

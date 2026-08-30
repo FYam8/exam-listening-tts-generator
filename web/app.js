@@ -15,6 +15,7 @@ const CAUSE_LABELS = {
 const LS_PACK = String.fromCharCode(119,97,115,101,115,104,105,98,117) + "-official-pack-v1";
 const WS = window.ListeningProgressStorage;
 const VOICE_PROFILES = window.ListeningVoiceProfiles;
+const STUDY_PLAN = window.ListeningStudyPlan;
 const APP_CONFIG = window.LISTENING_APP_CONFIG || {bundledPackBase64Var:null,hidePackControlsWhenBundled:true};
 const REQUIRED_YEARS = [2019,2020,2021,2022,2023,2024,2025,2026];
 
@@ -326,12 +327,12 @@ function computeNextTask(){
     }
     const lastOld=oldDone.sort((a,b)=>new Date(getInitial(b).date)-new Date(getInitial(a).date))[0];
     const a=getInitial(lastOld);
-    const pass = a.score>=16 && a.aMisses===0 && relevantProvisionalReady(lastOld);
+    const pass = STUDY_PLAN.isStableAttempt(a,relevantProvisionalReady(lastOld));
     if(pass || oldDone.length>=2){
       return {type:"exam",year:2024,title:"2024年度で中間チェック",meta:"直近寄りの形式で、補強が通用するか確認します。"};
     }
     const y=chooseOldYear();
-    return {type:"exam",year:y,title:`${y}年度でもう1回補強`,meta:"16/20・A失点0・主要弱点の仮合格という条件未達なので、2024の前にもう1年度だけ実施します。"};
+    return {type:"exam",year:y,title:`${y}年度でもう1回補強`,meta:"安定目標14/20・A問題失点1以下・主要弱点の仮合格という条件未達なので、2024の前にもう1年度だけ実施します。"};
   }
 
   const remainingOld=[2019,2020,2021,2022].filter(y=>!getInitial(y));
@@ -347,6 +348,7 @@ function computeNextTask(){
 
 function renderDashboard(){
   const task=computeNextTask();
+  const estimate=STUDY_PLAN.estimateRemaining(state.progress,REQUIRED_YEARS,todayISO());
   els.todayTask.innerHTML=`
     <div class="task-title">${esc(task.title)}</div>
     <div class="task-meta">${esc(task.meta||"")}</div>
@@ -356,6 +358,9 @@ function renderDashboard(){
     </div>`;
   els.todayStartBtn.disabled = task.type==="free";
   els.todayStartBtn.dataset.task = JSON.stringify(task);
+  els.remainingDays.textContent=estimate.max===0
+    ? "予定していた初回診断と補強が完了しました。"
+    : `完了までの目安：あと約${estimate.min}〜${estimate.max}日（毎日1つ進めた場合）`;
 
   if(state.pack){
     const auto = state.packSource==="bundled";
@@ -381,10 +386,7 @@ function renderDashboard(){
   renderStorageStatus();
 }
 function strategicLabel(score){
-  if(score>=18) return "上積み";
-  if(score>=16) return "安定";
-  if(score>=14) return "守る";
-  return "要補強";
+  return STUDY_PLAN.strategicLabel(score);
 }
 function renderRoadmap(){
   const current=computeNextTask().year;
@@ -490,7 +492,7 @@ function finishExam(){
   if(!e.retake){
     els.initialScore.textContent=String(score);
     els.initialScoreRing.style.setProperty("--angle",`${score/20*360}deg`);
-    els.initialScoreMessage.textContent=`${strategicLabel(score)}ライン。A問題失点 ${aMisses}問。初回得点は今後も上書きしません。`;
+    els.initialScoreMessage.textContent=`${strategicLabel(score)}。A問題失点 ${aMisses}問。初回得点は今後も上書きしません。`;
     els.startRediagnosisBtn.textContent = wrong.length ? "間違いを再診断する" : "次へ進む";
     els.startRediagnosisBtn.dataset.noWrong = wrong.length ? "0" : "1";
     showView("scoreOnlyView");
@@ -944,7 +946,7 @@ function bind(){
 function cacheEls(){
   const ids=[
     "dashboardView","examView","scoreOnlyView","rediagnosisView","scriptView","drillView","retentionView","historyView",
-    "dashboardBtn","historyBtn","todayTask","todayStartBtn","dataStatus","packInput","packInputLabel","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
+    "dashboardBtn","historyBtn","todayTask","todayStartBtn","remainingDays","dataStatus","packInput","packInputLabel","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
     "storageStatus","exportProgressBtn","progressImportInput",
     "rateSlider","rateLabel","maleVoice","femaleVoice","narratorVoice","voiceTestBtn","voiceStatus","toast",
     "examQuitBtn","examTitle","examProgressText","examProgressBar","examSectionLabel","examStimulusLabel","examAudioStatus","examPlayBtn","examQuestions","examNextBtn",

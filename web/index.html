@@ -34,7 +34,12 @@
       <section class="card today-card">
         <p class="kicker">TODAY</p>
         <h2>今日やること</h2>
+        <div class="goal-summary" aria-label="学習目標">
+          <span>6割ライン <strong>12/20</strong></span>
+          <span>安定目標 <strong>14/20</strong></span>
+        </div>
         <div id="todayTask"></div>
+        <p id="remainingDays" class="remaining-days"></p>
         <button id="todayStartBtn" class="primary wide" type="button">今日の学習を始める</button>
       </section>
 
@@ -260,6 +265,7 @@
 <script src="config.js"></script>
 <script src="storage.js"></script>
 <script src="voice_profiles.js"></script>
+<script src="study_plan.js"></script>
 <script src="original_bank.js"></script>
 <script src="public_demo.js"></script>
 <script src="app.js"></script>

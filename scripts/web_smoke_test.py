@@ -28,10 +28,13 @@ for marker in [
     "なぜ2023年度から？",
     "Man（男性）",
     "Woman（女性）",
+    "6割ライン",
+    "安定目標",
+    'id="remainingDays"',
 ]:
     if marker not in html:
         print("Missing required page marker:", marker, file=sys.stderr); raise SystemExit(1)
-for dependency in ['src="storage.js"', 'src="voice_profiles.js"']:
+for dependency in ['src="storage.js"', 'src="voice_profiles.js"', 'src="study_plan.js"']:
     if html.find(dependency) < 0 or html.find(dependency) > html.find('src="app.js"'):
         print(f"{dependency} must be loaded before app.js", file=sys.stderr); raise SystemExit(1)
 if html.find('class="card progress-transfer-card"') < html.find('id="voiceStatus"'):
