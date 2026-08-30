@@ -30,7 +30,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/listening-release
-          cat .release_chunks/part*.b64 | base64 --decode > /tmp/listening-release.zip
+          {
+            cat .release_chunks/part00.b64
+            cat .release_chunks/part01.b64
+            cat .release_chunks/part02.b64
+            cat .release_chunks/part03.b64
+            cat .release_chunks/part04.b64
+            cat .release_chunks/part05.b64
+            cat .release_chunks/part06.b64
+            cat .release_chunks/part07.b64
+            cat .release_chunks/part08.b64
+            cat .release_chunks/part09.b64
+            cat .release_chunks/part10.b64
+            cat .release_chunks/p11-*.b64
+            cat .release_chunks/part12.b64
+          } | base64 --decode > /tmp/listening-release.zip
+          unzip -t /tmp/listening-release.zip
           unzip -q /tmp/listening-release.zip -d /tmp/listening-release
           test -f /tmp/listening-release/web/index.html
           test -f /tmp/listening-release/.github/workflows/pages.yml
