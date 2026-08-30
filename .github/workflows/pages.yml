@@ -1,4 +1,4 @@
-name: Deploy audited listening v12.2
+name: Deploy audited listening v14
 
 on:
   push:
@@ -79,12 +79,31 @@ jobs:
           tar -xzf /tmp/v12_2_delta.tar.gz -C /tmp/listening-release
           mkdir -p /tmp/listening-release/.github/workflows
           cp .v12_2_release/pages.yml /tmp/listening-release/.github/workflows/pages.yml
+
+      - name: Apply verified v14 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            cat .v14_delta4k/p00.b64
+            cat .v14_delta4k/p01.b64
+            cat .v14_delta4k/p02.b64
+            cat .v14_delta/p012.b64 .v14_delta/p013.b64 .v14_delta/p014.b64 .v14_delta/p015.b64 .v14_delta/p016.b64 .v14_delta/p017.b64
+            cat .v14_delta/p018.b64 .v14_delta/p019.b64 .v14_delta/p020.b64 .v14_delta/p021.b64 .v14_delta/p022.b64 .v14_delta/p023.b64
+            cat .v14_delta/p024.b64 .v14_delta/p025.b64 .v14_delta/p026.b64 .v14_delta/p027.b64 .v14_delta/p028.b64 .v14_delta/p029.b64
+            cat .v14_delta/p030.b64 .v14_delta/p031.b64 .v14_delta/p032.b64 .v14_delta/p033.b64 .v14_delta/p034.b64
+          } | base64 --decode > /tmp/v14.patch.xz
+          echo 'f76cd767c446f9d6be1883ddda4a8a1d5e3da0cd341573e3d9f0a93f718b2e90  /tmp/v14.patch.xz' | sha256sum -c -
+          xz -dc /tmp/v14.patch.xz > /tmp/v14.patch
           cd /tmp/listening-release
-          echo '25ab00746c83f094ef9b6848e1b15ff7275d817845d086b5748b0608ec7ac7a8  web/app.js' | sha256sum -c -
-          echo '9347b3bb60e9d050427c123da388bcc7f9d01889aefc98b21d2b03ec19ab7f56  web/index.html' | sha256sum -c -
-          echo '48756794b225c2c268a4d4f8bdeba46a10b916fc61288708e3794d830dbc4b8a  web/styles.css' | sha256sum -c -
-          echo '00680e5eed2249604ac159066da6bf46886ed346a2b2c79598b844531e29d7e5  scripts/rediagnosis_ui_test.js' | sha256sum -c -
-          echo '60a95e837cb65a770ed1ff2bb9413724f0281ef28e6fb597d78fe956372dd7d0  scripts/release_readiness_audit.py' | sha256sum -c -
+          patch -p1 < /tmp/v14.patch
+          echo '6340220f038f61d84b79f005f8a67d3acbf108659df2f06b5e24ef6437a9ccd3  web/app.js' | sha256sum -c -
+          echo 'bdac3e4b1e72309938d44fe94ee1b115bbeb478246b608f8f3e0577793fc5e74  web/index.html' | sha256sum -c -
+          echo '20c78a7c269bddf3e18bb70bc0a06e9e1952483a8beeb941d51bbe02973beea7  web/storage.js' | sha256sum -c -
+          echo '474a87a4e1365166aca809bce9417cd5a1b1dbb9f62e658865b350a59bfe623e  web/styles.css' | sha256sum -c -
+          echo '6de8b48266e261757144307aaf77cf05cd68abff8469d70e883a4da1d36d9efa  web/target_strategy.js' | sha256sum -c -
+          echo '69aa7b45cef0b4066238081d7a6fe53f6da93c42bcd12940fef9d13195a55c60  scripts/target_strategy_test.js' | sha256sum -c -
+          echo '1ab246852f5711c2f53a1173ad3118028cf8159f7f6ebd10cadaea280a5ef6bd  scripts/resume_checkpoint_test.js' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -101,11 +120,14 @@ jobs:
           node scripts/transfer_practice_test.js
           node scripts/cause_diagnostics_test.js
           node scripts/rediagnosis_ui_test.js
+          node scripts/target_strategy_test.js
+          node scripts/resume_checkpoint_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
           node --check web/study_plan.js
           node --check web/transfer_bank.js
+          node --check web/target_strategy.js
           node --check web/app.js
 
       - uses: actions/configure-pages@v5
