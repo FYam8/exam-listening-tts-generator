@@ -1,0 +1,73 @@
+name: Deploy public listening app
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Publication audit
+        run: python scripts/publication_audit.py
+      - name: Authorized public/noindex audit
+        run: python scripts/authorized_public_audit.py
+      - name: Release-readiness audit
+        run: python scripts/release_readiness_audit.py
+      - name: Web smoke test
+        run: python scripts/web_smoke_test.py
+      - name: Storage migration/export/import tests
+        run: node scripts/storage_roundtrip_test.js
+      - name: Study-plan tests
+        run: node scripts/study_plan_test.js
+      - name: Voice-assignment tests
+        run: node scripts/voice_assignment_test.js
+      - name: Bundled-pack runtime test
+        run: node scripts/bundled_pack_runtime_test.js
+      - name: Transfer-practice tests
+        run: node scripts/transfer_practice_test.js
+      - name: Cause-diagnostics tests
+        run: node scripts/cause_diagnostics_test.js
+      - name: Rediagnosis UI regression test
+        run: node scripts/rediagnosis_ui_test.js
+      - name: JavaScript syntax checks
+        run: |
+          node --check web/config.js
+          node --check web/storage.js
+          node --check web/voice_profiles.js
+          node --check web/study_plan.js
+          node --check web/transfer_bank.js
+          node --check web/app.js
+
+  deploy:
+    needs: verify
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

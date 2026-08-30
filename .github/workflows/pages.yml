@@ -1,4 +1,4 @@
-name: Deploy audited listening v12.1
+name: Deploy audited listening v12.2
 
 on:
   push:
@@ -22,6 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: Reconstruct trusted v10 base
         shell: bash
@@ -63,13 +69,22 @@ jobs:
           xz -dc /tmp/v12.patch.xz > /tmp/v12.patch
           cd /tmp/listening-release
           patch -p1 < /tmp/v12.patch
-          echo 'd1c69a227d0fa1cb92fcc0b1325be6b980da0a8fe47c3abd4338afa0228c32e0  web/app.js' | sha256sum -c -
-          echo 'afc3adb13168ecaf8810c54f777f1a45d07e3aea88f152e6aca50969093ecbeb  web/index.html' | sha256sum -c -
-          echo '91bcb8251c57303a9c30fa96f5e833cf2e6e0154d3af6f7ebd25091891f11bcf  web/storage.js' | sha256sum -c -
-          echo 'e01e3d0606a4d0c78257c2d61035d903a111d5071b1980c5a29966368a271300  web/styles.css' | sha256sum -c -
-          echo '5db03e899b071c34216e5522834da64334094279883116f56a485117334266ba  web/transfer_bank.js' | sha256sum -c -
-          echo 'b0b7e4b7250c9b5bcaa61f5f45eb1fcc00826aeba5df314f05f7c29cd2067c95  scripts/transfer_practice_test.js' | sha256sum -c -
-          echo 'e400020f7f9e852a41480b9a8b635971b178569f3b6c41d2a2c088b47bde4551  scripts/cause_diagnostics_test.js' | sha256sum -c -
+
+      - name: Apply verified v12.2 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v12_2_delta/p*.b64 | base64 --decode > /tmp/v12_2_delta.tar.gz
+          echo 'd18ef5e3a094f35c5e56ffc88c6a48d0a8ffc052863a90dab5ad8e03612ac00a  /tmp/v12_2_delta.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/v12_2_delta.tar.gz -C /tmp/listening-release
+          mkdir -p /tmp/listening-release/.github/workflows
+          cp .v12_2_release/pages.yml /tmp/listening-release/.github/workflows/pages.yml
+          cd /tmp/listening-release
+          echo '25ab00746c83f094ef9b6848e1b15ff7275d817845d086b5748b0608ec7ac7a8  web/app.js' | sha256sum -c -
+          echo '9347b3bb60e9d050427c123da388bcc7f9d01889aefc98b21d2b03ec19ab7f56  web/index.html' | sha256sum -c -
+          echo '48756794b225c2c268a4d4f8bdeba46a10b916fc61288708e3794d830dbc4b8a  web/styles.css' | sha256sum -c -
+          echo '00680e5eed2249604ac159066da6bf46886ed346a2b2c79598b844531e29d7e5  scripts/rediagnosis_ui_test.js' | sha256sum -c -
+          echo '60a95e837cb65a770ed1ff2bb9413724f0281ef28e6fb597d78fe956372dd7d0  scripts/release_readiness_audit.py' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -77,6 +92,7 @@ jobs:
           set -euo pipefail
           python scripts/publication_audit.py
           python scripts/authorized_public_audit.py
+          python scripts/release_readiness_audit.py
           python scripts/web_smoke_test.py
           node scripts/storage_roundtrip_test.js
           node scripts/study_plan_test.js
@@ -84,6 +100,7 @@ jobs:
           node scripts/bundled_pack_runtime_test.js
           node scripts/transfer_practice_test.js
           node scripts/cause_diagnostics_test.js
+          node scripts/rediagnosis_ui_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
