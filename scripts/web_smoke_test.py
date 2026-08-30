@@ -25,11 +25,17 @@ for marker in [
     'id="exportProgressBtn"',
     'id="progressImportInput"',
     'id="rateSlider"',
+    "なぜ2023年度から？",
+    "Man（男性）",
+    "Woman（女性）",
 ]:
     if marker not in html:
         print("Missing required page marker:", marker, file=sys.stderr); raise SystemExit(1)
-if html.find('src="storage.js"') < 0 or html.find('src="app.js"') < 0 or html.find('src="storage.js"') > html.find('src="app.js"'):
-    print("storage.js must be loaded before app.js", file=sys.stderr); raise SystemExit(1)
+for dependency in ['src="storage.js"', 'src="voice_profiles.js"']:
+    if html.find(dependency) < 0 or html.find(dependency) > html.find('src="app.js"'):
+        print(f"{dependency} must be loaded before app.js", file=sys.stderr); raise SystemExit(1)
+if html.find('class="card progress-transfer-card"') < html.find('id="voiceStatus"'):
+    print("Progress import/export card must remain below the audio settings", file=sys.stderr); raise SystemExit(1)
 p=P();p.feed(html)
 js=(WEB/"app.js").read_text(encoding="utf-8")
 refs=set(re.findall(r'els\.([A-Za-z0-9_]+)',js))

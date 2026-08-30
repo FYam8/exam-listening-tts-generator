@@ -14,6 +14,7 @@ const CAUSE_LABELS = {
 };
 const LS_PACK = String.fromCharCode(119,97,115,101,115,104,105,98,117) + "-official-pack-v1";
 const WS = window.ListeningProgressStorage;
+const VOICE_PROFILES = window.ListeningVoiceProfiles;
 const APP_CONFIG = window.LISTENING_APP_CONFIG || {bundledPackBase64Var:null,hidePackControlsWhenBundled:true};
 const REQUIRED_YEARS = [2019,2020,2021,2022,2023,2024,2025,2026];
 
@@ -139,23 +140,33 @@ function loadVoices(){
   if(!speechAvailable()){ els.voiceStatus.textContent = "このブラウザは音声合成に対応していません。"; return; }
   state.voices = window.speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang));
   [els.maleVoice, els.femaleVoice, els.narratorVoice].forEach(sel => { sel.innerHTML=""; });
-  state.voices.forEach((v,i)=>{
-    const label = `${v.name} (${v.lang})${v.localService ? " · local" : ""}`;
-    [els.maleVoice, els.femaleVoice, els.narratorVoice].forEach(sel=>{
-      const o=document.createElement("option"); o.value=String(i); o.textContent=label; sel.appendChild(o);
-    });
+  const addOptions = (select, rows) => rows.forEach(({voice,index,gender})=>{
+    const suffix = gender === "unknown" ? " · 性別情報なし" : "";
+    const o=document.createElement("option");
+    o.value=String(index);
+    o.textContent=`${voice.name} (${voice.lang})${voice.localService ? " · local" : ""}${suffix}`;
+    select.appendChild(o);
   });
-  const find = pats => {
-    for(const p of pats){ const i=state.voices.findIndex(v=>p.test(v.name)); if(i>=0) return i; }
-    return 0;
-  };
-  const mi=find([/guy/i,/david/i,/daniel/i,/george/i,/ryan/i,/male/i]);
-  const wi=find([/jenny/i,/aria/i,/sonia/i,/zira/i,/samantha/i,/female/i]);
-  const ni=find([/aria/i,/susan/i,/libby/i,/daniel/i]);
+  const manRows=VOICE_PROFILES.rowsFor(state.voices,"man");
+  const womanRows=VOICE_PROFILES.rowsFor(state.voices,"woman");
+  const narratorRows=VOICE_PROFILES.rowsFor(state.voices,"narrator");
+  addOptions(els.maleVoice,manRows);
+  addOptions(els.femaleVoice,womanRows);
+  addOptions(els.narratorVoice,narratorRows);
   if(state.voices.length){
+    let mi=VOICE_PROFILES.preferredIndex(manRows,"man");
+    let wi=VOICE_PROFILES.preferredIndex(womanRows,"woman");
+    const ni=VOICE_PROFILES.preferredIndex(narratorRows,"narrator");
+    if(mi===wi && state.voices.length>1){
+      const alternative=womanRows.find(row=>row.index!==mi);
+      if(alternative) wi=alternative.index;
+    }
     els.maleVoice.value=String(mi); els.femaleVoice.value=String(wi); els.narratorVoice.value=String(ni);
     syncVoices();
-    els.voiceStatus.textContent=`英語音声 ${state.voices.length}件を検出。端末により声質は異なります。`;
+    const detected=VOICE_PROFILES.counts(state.voices);
+    els.voiceStatus.textContent=detected.man && detected.woman
+      ? `英語音声 ${state.voices.length}件を検出。Manは男性候補、Womanは女性候補だけを表示しています。`
+      : `英語音声 ${state.voices.length}件を検出しましたが、端末の音声名から性別を完全には判定できません。必要に応じてOSへ英語の男性・女性音声を追加してください。`;
   }else{
     els.voiceStatus.textContent="英語音声を読み込み中です。数秒後に再確認してください。";
   }

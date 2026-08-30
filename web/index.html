@@ -50,17 +50,6 @@
         </div>
         <p class="small">この公開許諾済み版は、2019〜2026年度の学習データをページ内に同梱しています。別のPrivate Packを読み込んだ場合も、データはこのブラウザ内に保存されます。</p>
 
-        <div class="data-protection">
-          <strong>学習履歴の保護</strong>
-          <p id="storageStatus" class="small"></p>
-          <div class="button-row">
-            <button id="exportProgressBtn" class="secondary" type="button">進捗をエクスポート</button>
-            <label class="secondary file-label">進捗をインポート
-              <input id="progressImportInput" type="file" accept=".json,application/json">
-            </label>
-          </div>
-          <p class="small">同じブラウザ・同じサイトのままバージョンアップする限り、エクスポートしなくても学習履歴を自動移行します。エクスポートには公式Private Packを含めません。</p>
-        </div>
       </section>
     </div>
 
@@ -69,6 +58,7 @@
         <div>
           <p class="kicker">ROADMAP</p>
           <h2>2019–2026 学習ロードマップ</h2>
+          <p class="small roadmap-note"><strong>なぜ2023年度から？</strong> 最近の傾向に近い年度で最初に弱点を見つけ、2019〜2022年度で補強するためです。2024年度は中間確認、2025・2026年度は仕上げの模試として残します。</p>
         </div>
         <button id="resetProgressBtn" class="danger ghost" type="button">進捗をリセット</button>
       </div>
@@ -93,14 +83,27 @@
       <h2>読み上げ設定</h2>
       <div class="grid three">
         <label class="field"><span>話速</span><input id="rateSlider" type="range" min="0.80" max="1.10" step="0.01" value="1.00"><strong id="rateLabel">1.00×</strong></label>
-        <label class="field"><span>Man</span><select id="maleVoice"></select></label>
-        <label class="field"><span>Woman</span><select id="femaleVoice"></select></label>
+        <label class="field"><span>Man（男性）</span><select id="maleVoice"></select></label>
+        <label class="field"><span>Woman（女性）</span><select id="femaleVoice"></select></label>
       </div>
       <div class="grid two">
         <label class="field"><span>Narrator</span><select id="narratorVoice"></select></label>
         <div class="field"><span>確認</span><button id="voiceTestBtn" class="secondary" type="button">音声テスト</button></div>
       </div>
       <p id="voiceStatus" class="small"></p>
+    </section>
+
+    <section class="card progress-transfer-card">
+      <p class="kicker">BACKUP</p>
+      <h2>学習履歴の保存</h2>
+      <p id="storageStatus" class="small"></p>
+      <div class="button-row progress-transfer-actions">
+        <button id="exportProgressBtn" class="secondary" type="button">進捗をエクスポート</button>
+        <label class="secondary file-label">進捗をインポート
+          <input id="progressImportInput" type="file" accept=".json,application/json">
+        </label>
+      </div>
+      <p class="small">通常の更新では操作しなくても、このブラウザに学習履歴が残ります。端末変更などに備えて保存したいときだけ使用してください。エクスポートに問題データは含まれません。</p>
     </section>
   </section>
 
@@ -256,6 +259,7 @@
 <script src="content-81cacbab924f.js"></script>
 <script src="config.js"></script>
 <script src="storage.js"></script>
+<script src="voice_profiles.js"></script>
 <script src="original_bank.js"></script>
 <script src="public_demo.js"></script>
 <script src="app.js"></script>

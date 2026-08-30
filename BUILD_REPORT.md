@@ -1,10 +1,12 @@
 # Build Report — Authorized Public / Noindex v6
 
-2026-08-29T22:28:01
+2026-08-30
 
 - PASS `node --check web/config.js`
 - PASS `node --check web/storage.js`
+- PASS `node --check web/voice_profiles.js`
 - PASS `node --check web/app.js`
+- PASS `node scripts/voice_assignment_test.js`
 - PASS `node scripts/storage_roundtrip_test.js`
 - PASS `python3 scripts/web_smoke_test.py`
 - PASS `python3 scripts/publication_audit.py`

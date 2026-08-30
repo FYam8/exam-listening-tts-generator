@@ -19,6 +19,15 @@
 
 ページを開くと2019〜2026年度のデータを自動読み込みします。通常、利用者がデータファイルを選択する必要はありません。
 
+学習は2023年度から始めます。最近の傾向に近い問題で弱点を診断し、2019〜2022年度で補強したうえで、2024年度を中間確認、2025・2026年度を仕上げの模試に使う設計です。
+
+## 読み上げ音声
+
+- Man欄には端末内の男性候補、Woman欄には女性候補だけを表示
+- Narratorは別に選択可能
+- 音声名から性別を判定できない端末では、その旨を画面に表示
+- 音声の種類・品質はブラウザとOSにより異なる
+
 ## 学習履歴
 
 通常のバージョンアップでは同じLocalStorageキーを継続利用し、データ構造変更は `schemaVersion` で移行します。
@@ -38,6 +47,9 @@ python scripts/publication_audit.py
 python scripts/authorized_public_audit.py
 python scripts/web_smoke_test.py
 node scripts/storage_roundtrip_test.js
+node scripts/voice_assignment_test.js
+node scripts/bundled_pack_runtime_test.js
+node --check web/voice_profiles.js
 node --check web/storage.js
 node --check web/app.js
 ```
