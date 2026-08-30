@@ -1,4 +1,4 @@
-name: Deploy audited UX v8 release
+name: Deploy audited audio UX v10 release
 
 on:
   push:
@@ -22,32 +22,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Reconstruct audited release
+      - name: Reconstruct and verify v10 release
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/listening-release
           {
-            cat .release_chunks/part00.b64
-            cat .release_chunks/part01.b64
-            cat .release_chunks/part02.b64
-            cat .release_chunks/part03.b64
-            cat .release_chunks/part04.b64
-            cat .release_chunks/part05.b64
-            cat .release_chunks/part06.b64
-            cat .release_chunks/part07.b64
-            cat .release_chunks/part08.b64
-            cat .release_chunks/part09.b64
-            cat .release_chunks/part10.b64
-            cat .release_chunks/p11-*.b64
-            cat .release_chunks/part12.b64
+            cat .v10_chunks/part00.b64
+            cat .v10_repair/part01a.b64 .v10_repair/part01b.b64
+            cat .v10_chunks/part02.b64 .v10_chunks/part03.b64
+            cat .v10_repair/part04a.b64 .v10_repair/part04b0.b64 .v10_repair/part04b1.b64
+            cat .v10_chunks/part05.b64 .v10_chunks/part06.b64 .v10_chunks/part07.b64 .v10_chunks/part08.b64 .v10_chunks/part09.b64 .v10_chunks/part10.b64 .v10_chunks/part11.b64
+            cat .v10_repair/part12a0.b64 .v10_repair/part12a1.b64 .v10_repair/part12b0.b64 .v10_repair/part12b1.b64
+            cat .v10_repair/part13.b64
           } | base64 --decode > /tmp/listening-release.zip
+          echo "f5dd47cfa72218bf6d9a65fbdc60641266c2c5abab45b7146950681ccb269a8a  /tmp/listening-release.zip" | sha256sum -c -
           unzip -t /tmp/listening-release.zip
           unzip -q /tmp/listening-release.zip -d /tmp/listening-release
           test -f /tmp/listening-release/web/index.html
-
-      - name: Verify audited release
+      - name: Run release audits
         working-directory: /tmp/listening-release
         run: |
           set -euo pipefail
@@ -63,7 +56,6 @@ jobs:
           node --check web/voice_profiles.js
           node --check web/study_plan.js
           node --check web/app.js
-
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
