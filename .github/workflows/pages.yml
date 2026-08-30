@@ -1,4 +1,4 @@
-name: Bootstrap audited UX v8 release
+name: Deploy audited UX v8 release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -22,8 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Reconstruct audited release
         shell: bash
@@ -48,7 +46,6 @@ jobs:
           unzip -t /tmp/listening-release.zip
           unzip -q /tmp/listening-release.zip -d /tmp/listening-release
           test -f /tmp/listening-release/web/index.html
-          test -f /tmp/listening-release/.github/workflows/pages.yml
 
       - name: Verify audited release
         working-directory: /tmp/listening-release
@@ -66,19 +63,6 @@ jobs:
           node --check web/voice_profiles.js
           node --check web/study_plan.js
           node --check web/app.js
-
-      - name: Replace repository with audited source
-        shell: bash
-        run: |
-          set -euo pipefail
-          rsync -a --delete --exclude='.git/' /tmp/listening-release/ ./
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Publish listening UX v8 audited release"
-            git push origin HEAD:main
-          fi
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
