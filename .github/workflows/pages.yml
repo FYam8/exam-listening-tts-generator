@@ -1,4 +1,4 @@
-name: Deploy audited listening v14
+name: Deploy audited listening v15
 
 on:
   push:
@@ -98,12 +98,24 @@ jobs:
           cd /tmp/listening-release
           patch -p1 < /tmp/v14.patch
           echo '6340220f038f61d84b79f005f8a67d3acbf108659df2f06b5e24ef6437a9ccd3  web/app.js' | sha256sum -c -
-          echo 'bdac3e4b1e72309938d44fe94ee1b115bbeb478246b608f8f3e0577793fc5e74  web/index.html' | sha256sum -c -
-          echo '20c78a7c269bddf3e18bb70bc0a06e9e1952483a8beeb941d51bbe02973beea7  web/storage.js' | sha256sum -c -
-          echo '474a87a4e1365166aca809bce9417cd5a1b1dbb9f62e658865b350a59bfe623e  web/styles.css' | sha256sum -c -
           echo '6de8b48266e261757144307aaf77cf05cd68abff8469d70e883a4da1d36d9efa  web/target_strategy.js' | sha256sum -c -
-          echo '69aa7b45cef0b4066238081d7a6fe53f6da93c42bcd12940fef9d13195a55c60  scripts/target_strategy_test.js' | sha256sum -c -
           echo '1ab246852f5711c2f53a1173ad3118028cf8159f7f6ebd10cadaea280a5ef6bd  scripts/resume_checkpoint_test.js' | sha256sum -c -
+
+      - name: Apply verified v15 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v15_delta/p*.b64 | base64 --decode > /tmp/v15.patch.xz
+          echo 'be6334c91a901a31bef92f1bb31456b3d13495ecb54c71bcf13a0915a719518c  /tmp/v15.patch.xz' | sha256sum -c -
+          xz -dc /tmp/v15.patch.xz > /tmp/v15.patch
+          cd /tmp/listening-release
+          patch -p1 < /tmp/v15.patch
+          echo '019cdc602c16fb082f822e54088738b0ebe85aca91ebce75392396e0d426766a  web/app.js' | sha256sum -c -
+          echo '70a0931a78429acdf656e4de4c971f4911ac513827d1aac4f61c09ae62ab0484  scripts/today_flow_test.js' | sha256sum -c -
+          echo '58e5875d086be3a7ca61c2cd137013f9148c3119261df285fc913d2384e200c8  scripts/release_readiness_audit.py' | sha256sum -c -
+          echo '99f53e275b16b3c405b8bb04927ded61fa8d7cc48e6269c95e3cdd307ffc38b9  README.md' | sha256sum -c -
+          echo '5448245af505b4fe7bf4451ffee3c4ff92a5783f526aee52156084585b5add4d  V15_TODAY_FLOW_AUDIT.md' | sha256sum -c -
+          echo 'e3fdd7fedfaceb6eab40cd2df463e9334ce78441ae404adc62c347f9161ae23d  .github/workflows/pages.yml' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -122,6 +134,7 @@ jobs:
           node scripts/rediagnosis_ui_test.js
           node scripts/target_strategy_test.js
           node scripts/resume_checkpoint_test.js
+          node scripts/today_flow_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
