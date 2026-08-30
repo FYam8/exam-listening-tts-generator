@@ -1,4 +1,4 @@
-name: Deploy audited listening v17
+name: Deploy audited listening v18
 
 on:
   push:
@@ -80,14 +80,27 @@ jobs:
           cat .v17_delta/p*.b64 | base64 --decode > /tmp/v17.patch.xz
           echo '14b866b54fe8438462fbc9b7177d97594cdb736b7b11c64ac10c85355b984621  /tmp/v17.patch.xz' | sha256sum -c -
           xz -dc /tmp/v17.patch.xz > /tmp/v17.patch
+          (cd /tmp/listening-release && patch -p1 < /tmp/v17.patch)
+
+      - name: Apply verified v18 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v18_delta4k/p*.b64 | base64 --decode > /tmp/v18_delta.tar.xz
+          echo 'd760bbb14f3a66bd31c844ade823055abe514b1aff64a88548eb18d42a74c5fe  /tmp/v18_delta.tar.xz' | sha256sum -c -
+          tar -xJf /tmp/v18_delta.tar.xz -C /tmp/listening-release
           cd /tmp/listening-release
-          patch -p1 < /tmp/v17.patch
-          echo '341e2f9018ec8569b06a77d5ccbc539b62e4c0e1bd9b15534c58dbd66fa5552e  web/app.js' | sha256sum -c -
-          echo '75ece9f507fd9129595bdbeec8f780725b51fcf9ef8e21b740bdbb3ad17c1c07  web/index.html' | sha256sum -c -
-          echo '436d7c77760f5306c00a4c9e04cf1dbb5faa72e51e65b8e289b78ab0e2a59c08  scripts/exam_choice_ui_test.js' | sha256sum -c -
-          echo 'b78c8ee4f2225a15155b2003cd1ad28dc66d38fb1dbbfa237f3dc504499ee966  scripts/script_forward_test.js' | sha256sum -c -
-          echo 'f3e81d2d6d5d412610fe7e3083e0f1df6cb636184e9cb9dc9bf3e58a222b9990  scripts/release_readiness_audit.py' | sha256sum -c -
-          echo '954b97f305e9cf9fc163d5406d9a647992e1881f1a570fc9272959ed8f1f9fe0  .github/workflows/pages.yml' | sha256sum -c -
+          echo '7f75dcd1e7a80d793dc971a9e7232b7b84b164bff4ed6a6ecda1e36ed8242003  .github/workflows/pages.yml' | sha256sum -c -
+          echo '89016e6b184e50dadb0cbb1777d1f4e16c2cf8aad33808978d8d3053403955b6  CHAT_HANDOFF.md' | sha256sum -c -
+          echo '0bd9462c1d6fc16358490723efd43a6c4809aa143c456ce015970941212ebdcd  GITHUB_PUBLISHING.md' | sha256sum -c -
+          echo 'd95dfda40f2801d0145a92ec3638cc0f58caaaa14ea5944de4e7f4de55d8ba3d  README.md' | sha256sum -c -
+          echo '86c289996d908ec051ee409fbae349c98f7dee48725021ee260826e2a70b311b  V18_FRESH_START_AUDIT.md' | sha256sum -c -
+          echo '9b9bdd990c45a4e3af557cc743d9ace36daf715597d0acba435cc2d0a284de83  scripts/exam_choice_ui_test.js' | sha256sum -c -
+          echo '5375c401778fa56508fddda146441c9c5d23cea1d5a5288d9ea7d36196764cd9  scripts/fresh_start_ui_test.js' | sha256sum -c -
+          echo '53dfb37dfab62208cbdbf3ef4aaca80edc83934e3cef088fbecdf60cb8e521d7  scripts/release_readiness_audit.py' | sha256sum -c -
+          echo 'c0c21464864200a3def28ce2cdfd7588fbec4695152a7a4d579249ad29bba365  web/app.js' | sha256sum -c -
+          echo '6b68bd8b308d477511cdd169d94cc0f9432f35a8597d192ba4a5ed7c5a8aeb62  web/index.html' | sha256sum -c -
+          echo '7b5269d210cb9d68e4caec6c200a3208712097d8c81d64299924ca4738800dd3  web/styles.css' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -109,6 +122,7 @@ jobs:
           node scripts/today_flow_test.js
           node scripts/script_forward_test.js
           node scripts/exam_choice_ui_test.js
+          node scripts/fresh_start_ui_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
