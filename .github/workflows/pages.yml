@@ -1,4 +1,4 @@
-name: Deploy audited listening v15
+name: Deploy audited listening v17
 
 on:
   push:
@@ -29,65 +29,36 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Reconstruct trusted v10 base
+      - name: Reconstruct audited v15 base
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf /tmp/listening-release
           mkdir -p /tmp/listening-release
           {
             cat .v10_chunks/part00.b64
-            cat .v10_repair/part01a.b64
-            cat .v10_repair/part01b.b64
-            cat .v10_chunks/part02.b64
-            cat .v10_chunks/part03.b64
-            cat .v10_repair/part04a.b64
-            cat .v10_repair/part04b0.b64
-            cat .v10_repair/part04b1.b64
-            cat .v10_chunks/part05.b64
-            cat .v10_chunks/part06.b64
-            cat .v10_chunks/part07.b64
-            cat .v10_chunks/part08.b64
-            cat .v10_chunks/part09.b64
-            cat .v10_chunks/part10.b64
-            cat .v10_chunks/part11.b64
-            cat .v10_repair/part12a0.b64
-            cat .v10_repair/part12a1.b64
-            cat .v10_repair/part12b0.b64
-            cat .v10_repair/part12b1.b64
-            cat .v10_repair/part13.b64
+            cat .v10_repair/part01a.b64 .v10_repair/part01b.b64
+            cat .v10_chunks/part02.b64 .v10_chunks/part03.b64
+            cat .v10_repair/part04a.b64 .v10_repair/part04b0.b64 .v10_repair/part04b1.b64
+            cat .v10_chunks/part05.b64 .v10_chunks/part06.b64 .v10_chunks/part07.b64 .v10_chunks/part08.b64 .v10_chunks/part09.b64 .v10_chunks/part10.b64 .v10_chunks/part11.b64
+            cat .v10_repair/part12a0.b64 .v10_repair/part12a1.b64 .v10_repair/part12b0.b64 .v10_repair/part12b1.b64 .v10_repair/part13.b64
           } | base64 --decode > /tmp/v10.zip
           echo 'f5dd47cfa72218bf6d9a65fbdc60641266c2c5abab45b7146950681ccb269a8a  /tmp/v10.zip' | sha256sum -c -
-          unzip -t /tmp/v10.zip
           unzip -q /tmp/v10.zip -d /tmp/listening-release
 
-      - name: Apply verified v12.1 delta
-        shell: bash
-        run: |
-          set -euo pipefail
           cat .v12_delta/p*.b64 | base64 --decode > /tmp/v12.patch.xz
           echo 'ded577988f7f65a80923bb5fe30bc2bf753c42482cb29f44ebf84a4ded56e127  /tmp/v12.patch.xz' | sha256sum -c -
           xz -dc /tmp/v12.patch.xz > /tmp/v12.patch
-          cd /tmp/listening-release
-          patch -p1 < /tmp/v12.patch
+          (cd /tmp/listening-release && patch -p1 < /tmp/v12.patch)
 
-      - name: Apply verified v12.2 delta
-        shell: bash
-        run: |
-          set -euo pipefail
           cat .v12_2_delta/p*.b64 | base64 --decode > /tmp/v12_2_delta.tar.gz
           echo 'd18ef5e3a094f35c5e56ffc88c6a48d0a8ffc052863a90dab5ad8e03612ac00a  /tmp/v12_2_delta.tar.gz' | sha256sum -c -
           tar -xzf /tmp/v12_2_delta.tar.gz -C /tmp/listening-release
           mkdir -p /tmp/listening-release/.github/workflows
           cp .v12_2_release/pages.yml /tmp/listening-release/.github/workflows/pages.yml
 
-      - name: Apply verified v14 delta
-        shell: bash
-        run: |
-          set -euo pipefail
           {
-            cat .v14_delta4k/p00.b64
-            cat .v14_delta4k/p01.b64
-            cat .v14_delta4k/p02.b64
+            cat .v14_delta4k/p00.b64 .v14_delta4k/p01.b64 .v14_delta4k/p02.b64
             cat .v14_delta/p012.b64 .v14_delta/p013.b64 .v14_delta/p014.b64 .v14_delta/p015.b64 .v14_delta/p016.b64 .v14_delta/p017.b64
             cat .v14_delta/p018.b64 .v14_delta/p019.b64 .v14_delta/p020.b64 .v14_delta/p021.b64 .v14_delta/p022.b64 .v14_delta/p023.b64
             cat .v14_delta/p024.b64 .v14_delta/p025.b64 .v14_delta/p026.b64 .v14_delta/p027.b64 .v14_delta/p028.b64 .v14_delta/p029.b64
@@ -95,27 +66,28 @@ jobs:
           } | base64 --decode > /tmp/v14.patch.xz
           echo 'f76cd767c446f9d6be1883ddda4a8a1d5e3da0cd341573e3d9f0a93f718b2e90  /tmp/v14.patch.xz' | sha256sum -c -
           xz -dc /tmp/v14.patch.xz > /tmp/v14.patch
-          cd /tmp/listening-release
-          patch -p1 < /tmp/v14.patch
-          echo '6340220f038f61d84b79f005f8a67d3acbf108659df2f06b5e24ef6437a9ccd3  web/app.js' | sha256sum -c -
-          echo '6de8b48266e261757144307aaf77cf05cd68abff8469d70e883a4da1d36d9efa  web/target_strategy.js' | sha256sum -c -
-          echo '1ab246852f5711c2f53a1173ad3118028cf8159f7f6ebd10cadaea280a5ef6bd  scripts/resume_checkpoint_test.js' | sha256sum -c -
+          (cd /tmp/listening-release && patch -p1 < /tmp/v14.patch)
 
-      - name: Apply verified v15 delta
-        shell: bash
-        run: |
-          set -euo pipefail
           cat .v15_delta/p*.b64 | base64 --decode > /tmp/v15.patch.xz
           echo 'be6334c91a901a31bef92f1bb31456b3d13495ecb54c71bcf13a0915a719518c  /tmp/v15.patch.xz' | sha256sum -c -
           xz -dc /tmp/v15.patch.xz > /tmp/v15.patch
+          (cd /tmp/listening-release && patch -p1 < /tmp/v15.patch)
+
+      - name: Apply verified v17 delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v17_delta/p*.b64 | base64 --decode > /tmp/v17.patch.xz
+          echo '14b866b54fe8438462fbc9b7177d97594cdb736b7b11c64ac10c85355b984621  /tmp/v17.patch.xz' | sha256sum -c -
+          xz -dc /tmp/v17.patch.xz > /tmp/v17.patch
           cd /tmp/listening-release
-          patch -p1 < /tmp/v15.patch
-          echo '019cdc602c16fb082f822e54088738b0ebe85aca91ebce75392396e0d426766a  web/app.js' | sha256sum -c -
-          echo '70a0931a78429acdf656e4de4c971f4911ac513827d1aac4f61c09ae62ab0484  scripts/today_flow_test.js' | sha256sum -c -
-          echo '58e5875d086be3a7ca61c2cd137013f9148c3119261df285fc913d2384e200c8  scripts/release_readiness_audit.py' | sha256sum -c -
-          echo '99f53e275b16b3c405b8bb04927ded61fa8d7cc48e6269c95e3cdd307ffc38b9  README.md' | sha256sum -c -
-          echo '5448245af505b4fe7bf4451ffee3c4ff92a5783f526aee52156084585b5add4d  V15_TODAY_FLOW_AUDIT.md' | sha256sum -c -
-          echo 'e3fdd7fedfaceb6eab40cd2df463e9334ce78441ae404adc62c347f9161ae23d  .github/workflows/pages.yml' | sha256sum -c -
+          patch -p1 < /tmp/v17.patch
+          echo '341e2f9018ec8569b06a77d5ccbc539b62e4c0e1bd9b15534c58dbd66fa5552e  web/app.js' | sha256sum -c -
+          echo '75ece9f507fd9129595bdbeec8f780725b51fcf9ef8e21b740bdbb3ad17c1c07  web/index.html' | sha256sum -c -
+          echo '436d7c77760f5306c00a4c9e04cf1dbb5faa72e51e65b8e289b78ab0e2a59c08  scripts/exam_choice_ui_test.js' | sha256sum -c -
+          echo 'b78c8ee4f2225a15155b2003cd1ad28dc66d38fb1dbbfa237f3dc504499ee966  scripts/script_forward_test.js' | sha256sum -c -
+          echo 'f3e81d2d6d5d412610fe7e3083e0f1df6cb636184e9cb9dc9bf3e58a222b9990  scripts/release_readiness_audit.py' | sha256sum -c -
+          echo '954b97f305e9cf9fc163d5406d9a647992e1881f1a570fc9272959ed8f1f9fe0  .github/workflows/pages.yml' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -135,6 +107,8 @@ jobs:
           node scripts/target_strategy_test.js
           node scripts/resume_checkpoint_test.js
           node scripts/today_flow_test.js
+          node scripts/script_forward_test.js
+          node scripts/exam_choice_ui_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
