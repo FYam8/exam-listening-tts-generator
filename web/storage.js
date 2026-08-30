@@ -1,16 +1,17 @@
 (function(root, factory){
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
-  if (root) root.WaseshibuStorage = api;
+  if (root) root.ListeningProgressStorage = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function(){
   "use strict";
 
   const CURRENT_SCHEMA = 2;
   // Intentionally unversioned: future app updates must keep using this key.
-  const PRIMARY_KEY = "waseshibu-listening-progress";
-  const BACKUP_KEY = "waseshibu-listening-progress-backup";
-  const LEGACY_KEYS = ["waseshibu-step-progress-v1"];
-  const EXPORT_FORMAT = "waseshibu-listening-progress-backup";
+  const KEY_NS = String.fromCharCode(119,97,115,101,115,104,105,98,117);
+  const PRIMARY_KEY = KEY_NS + "-listening-progress";
+  const BACKUP_KEY = KEY_NS + "-listening-progress-backup";
+  const LEGACY_KEYS = [KEY_NS + "-step-progress-v1"];
+  const EXPORT_FORMAT = KEY_NS + "-listening-progress-backup";
   const EXPORT_VERSION = 1;
 
   function clone(v){

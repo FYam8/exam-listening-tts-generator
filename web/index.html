@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="早稲渋英語リスニングのステップ学習用・非公式Webアプリ">
-  <title>早稲渋 Listening Step Trainer</title>
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+  <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+  <meta name="bingbot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+  <meta name="description" content="英語リスニングのステップ学習用・非公式Webアプリ">
+  <title>Listening Step Trainer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,7 +16,7 @@
   <div class="shell header-row">
     <div>
       <p class="eyebrow">PRIVATE STUDY / NON-OFFICIAL</p>
-      <h1>早稲渋 Listening Step Trainer</h1>
+      <h1>Listening Step Trainer</h1>
       <p class="header-sub">過去問診断 → 再診断 → スクリプト反復 → 類題 → 定着確認 → 次年度</p>
     </div>
     <div class="button-row"><button id="historyBtn" class="ghost light" type="button">初回履歴</button><button id="dashboardBtn" class="ghost light" type="button">ダッシュボード</button></div>
@@ -41,12 +43,12 @@
         <h2>過去問データ</h2>
         <div id="dataStatus"></div>
         <div class="button-row">
-          <label class="secondary file-label">Private Packを読み込む
+          <label id="packInputLabel" class="secondary file-label">Private Packを読み込む
             <input id="packInput" type="file" accept=".json,application/json">
           </label>
           <button id="forgetPackBtn" class="ghost" type="button">保存データを外す</button>
         </div>
-        <p class="small">Private PackはブラウザのLocalStorageに保存します。公開用GitHub Pagesには公式本文を含めません。</p>
+        <p class="small">この公開許諾済み版は、2019〜2026年度の学習データをページ内に同梱しています。別のPrivate Packを読み込んだ場合も、データはこのブラウザ内に保存されます。</p>
 
         <div class="data-protection">
           <strong>学習履歴の保護</strong>
@@ -248,9 +250,11 @@
   </section>
 </main>
 
-<footer><div class="shell"><p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。Private Pack内の公式過去問データは個人学習用です。</p></div></footer>
+<footer><div class="shell"><p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。GitHub Pagesの公開対象は <code>web/</code> のみです。</p></div></footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="content-81cacbab924f.js"></script>
+<script src="config.js"></script>
 <script src="storage.js"></script>
 <script src="original_bank.js"></script>
 <script src="public_demo.js"></script>

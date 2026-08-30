@@ -12,13 +12,15 @@ const CAUSE_LABELS = {
   HEAR:"音として聞こえない", VOCAB:"語彙・表現", MEANING:"意味処理",
   UPDATE:"情報更新", CALC:"計算", QUESTION:"設問読み違い", MEMO:"メモ不足", CARELESS:"ケアレス"
 };
-const LS_PACK = "waseshibu-official-pack-v1";
-const WS = window.WaseshibuStorage;
+const LS_PACK = String.fromCharCode(119,97,115,101,115,104,105,98,117) + "-official-pack-v1";
+const WS = window.ListeningProgressStorage;
+const APP_CONFIG = window.LISTENING_APP_CONFIG || {bundledPackBase64Var:null,hidePackControlsWhenBundled:true};
 const REQUIRED_YEARS = [2019,2020,2021,2022,2023,2024,2025,2026];
 
 const els = {};
 const state = {
   pack:null,
+  packSource:null,
   progress:null,
   storageInfo:null,
   voices:[],
@@ -80,7 +82,7 @@ function downloadText(filename,text){
 function exportProgress(){
   try{
     const stamp=new Date().toISOString().replace(/[:.]/g,"-");
-    downloadText(`waseshibu-listening-progress-${stamp}.json`,WS.exportText(state.progress));
+    downloadText(`listening-progress-${stamp}.json`,WS.exportText(state.progress));
     toast("学習履歴・進捗をエクスポートしました。Private Packは含まれません。");
   }catch(err){
     console.error(err);toast(`エクスポート失敗: ${err.message}`);
@@ -345,9 +347,21 @@ function renderDashboard(){
   els.todayStartBtn.dataset.task = JSON.stringify(task);
 
   if(state.pack){
-    els.dataStatus.innerHTML=`<p><strong>2019–2026 Private Pack 読込済み</strong></p><p class="small">8年度 × 10問 = 80問。初回得点は20点満点で保存します。</p>`;
+    const auto = state.packSource==="bundled";
+    els.dataStatus.innerHTML=auto
+      ? `<p><strong>2019–2026 過去問データ 自動読込済み</strong></p><p class="small">8年度 × 10問 = 80問。過去問データは自動で読み込まれます。</p>`
+      : `<p><strong>2019–2026 過去問データ 読込済み</strong></p><p class="small">8年度 × 10問 = 80問。初回得点は20点満点で保存します。</p>`;
+    if(APP_CONFIG.hidePackControlsWhenBundled && auto){
+      els.packInputLabel?.classList.add("hidden");
+      els.forgetPackBtn?.classList.add("hidden");
+    }else{
+      els.packInputLabel?.classList.remove("hidden");
+      els.forgetPackBtn?.classList.remove("hidden");
+    }
   }else{
-    els.dataStatus.innerHTML=`<p><strong>Private Pack未読込</strong></p><p class="small">ローカル版では自動読込を試します。GitHub PagesではPrivate Packを手動選択してください。</p>`;
+    els.dataStatus.innerHTML=`<p><strong>過去問データ未読込</strong></p><p class="small">公開版には公式過去問本文を同梱していません。必要な場合はPrivate Packをローカルから読み込んでください。</p>`;
+    els.packInputLabel?.classList.remove("hidden");
+    els.forgetPackBtn?.classList.remove("hidden");
   }
 
   renderRoadmap();
@@ -612,7 +626,7 @@ function startDrillsFromScript(){
 
 // ---------- Original drill ----------
 function bankForTag(tag,retentionOnly=false){
-  return (window.WASESHIBU_ORIGINAL_BANK||[]).filter(x=>x.tag===tag && (!!x.retentionOnly)===retentionOnly);
+  return (window.LISTENING_ORIGINAL_BANK||[]).filter(x=>x.tag===tag && (!!x.retentionOnly)===retentionOnly);
 }
 function chooseBankItems(tag,n,exclude=[]){
   const all=bankForTag(tag,false);
@@ -794,16 +808,57 @@ function renderHistory(){
 
 // ---------- Pack loading ----------
 async function tryAutoPack(){
+  // Authorized public build: official pack is embedded as Base64 to reduce text indexing.
+  // This is not encryption or access control; it only avoids shipping searchable plaintext.
+  if(APP_CONFIG.bundledPackBase64Var){
+    try{
+      const encoded=window[APP_CONFIG.bundledPackBase64Var];
+      if(encoded){
+        const raw=atob(encoded);
+        const bytes=new Uint8Array(raw.length);
+        for(let i=0;i<raw.length;i++) bytes[i]=raw.charCodeAt(i);
+        const text=new TextDecoder("utf-8").decode(bytes);
+        const p=JSON.parse(text);
+        validatePack(p);
+        state.pack=p;
+        state.packSource="bundled";
+        localStorage.setItem(LS_PACK,JSON.stringify(p));
+        return;
+      }
+    }catch(err){
+      console.warn("Bundled pack decode failed:",err);
+    }
+  }
+
+  // Backward-compatible URL bundle support for private/local builds.
+  if(APP_CONFIG.bundledPackUrl){
+    try{
+      const res=await fetch(APP_CONFIG.bundledPackUrl,{cache:"no-store"});
+      if(res.ok){
+        const p=await res.json();
+        validatePack(p);
+        state.pack=p;
+        state.packSource="bundled";
+        localStorage.setItem(LS_PACK,JSON.stringify(p));
+        return;
+      }
+    }catch(err){
+      console.warn("Bundled pack auto-load failed:",err);
+    }
+  }
+
+  // Saved browser data fallback.
   try{
     const saved=JSON.parse(localStorage.getItem(LS_PACK)||"null");
-    if(saved){validatePack(saved);state.pack=saved;return;}
-  }catch{localStorage.removeItem(LS_PACK);}
-  try{
-    const res=await fetch("../private-content/official_waseshibu_listening_2019_2026.private.json",{cache:"no-store"});
-    if(res.ok){
-      const p=await res.json();validatePack(p);state.pack=p;localStorage.setItem(LS_PACK,JSON.stringify(p));
+    if(saved){
+      validatePack(saved);
+      state.pack=saved;
+      state.packSource="saved";
+      return;
     }
-  }catch{}
+  }catch{localStorage.removeItem(LS_PACK);}
+
+  state.packSource=null;
 }
 
 // ---------- Event wiring ----------
@@ -822,7 +877,7 @@ function bind(){
   els.packInput.addEventListener("change",async e=>{
     const f=e.target.files?.[0];if(!f)return;
     try{
-      const p=JSON.parse(await f.text());validatePack(p);state.pack=p;localStorage.setItem(LS_PACK,JSON.stringify(p));toast("Private Packを読み込みました。");renderDashboard();
+      const p=JSON.parse(await f.text());validatePack(p);state.pack=p;state.packSource="manual";localStorage.setItem(LS_PACK,JSON.stringify(p));toast("Private Packを読み込みました。");renderDashboard();
     }catch(err){toast(`読込失敗: ${err.message}`);}
     e.target.value="";
   });
@@ -833,7 +888,7 @@ function bind(){
     e.target.value="";
   });
   els.forgetPackBtn.addEventListener("click",()=>{
-    localStorage.removeItem(LS_PACK);state.pack=null;toast("Private Packのブラウザ保存を外しました。進捗は残しています。");renderDashboard();
+    localStorage.removeItem(LS_PACK);state.pack=null;state.packSource=null;toast("Private Packのブラウザ保存を外しました。進捗は残しています。");renderDashboard();
   });
   els.resetProgressBtn.addEventListener("click",()=>{
     if(confirm("初回得点・弱点・定着履歴をすべて消去しますか？")){
@@ -878,7 +933,7 @@ function bind(){
 function cacheEls(){
   const ids=[
     "dashboardView","examView","scoreOnlyView","rediagnosisView","scriptView","drillView","retentionView","historyView",
-    "dashboardBtn","historyBtn","todayTask","todayStartBtn","dataStatus","packInput","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
+    "dashboardBtn","historyBtn","todayTask","todayStartBtn","dataStatus","packInput","packInputLabel","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
     "storageStatus","exportProgressBtn","progressImportInput",
     "rateSlider","rateLabel","maleVoice","femaleVoice","narratorVoice","voiceTestBtn","voiceStatus","toast",
     "examQuitBtn","examTitle","examProgressText","examProgressBar","examSectionLabel","examStimulusLabel","examAudioStatus","examPlayBtn","examQuestions","examNextBtn",

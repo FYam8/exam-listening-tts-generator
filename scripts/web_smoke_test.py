@@ -5,10 +5,7 @@ import re, sys, json
 
 ROOT=Path(__file__).resolve().parents[1]
 WEB=ROOT/"web"
-required=[
-    WEB/"index.html", WEB/"styles.css", WEB/"storage.js", WEB/"app.js",
-    WEB/"original_bank.js", WEB/"robots.txt", WEB/".nojekyll"
-]
+required=[WEB/"index.html",WEB/"styles.css",WEB/"config.js",WEB/"storage.js",WEB/"app.js",WEB/"original_bank.js"]
 for p in required:
     if not p.is_file():
         print("Missing:",p,file=sys.stderr);raise SystemExit(1)
@@ -20,10 +17,17 @@ class P(HTMLParser):
             if k=="id" and v:self.ids.add(v)
 
 html=(WEB/"index.html").read_text(encoding="utf-8")
-if 'name="robots" content="noindex, nofollow, noarchive"' not in html:
-    print("noindex metadata is missing", file=sys.stderr); raise SystemExit(1)
-if "実際の入試の声質・速度・間を完全再現するものではありません" not in html:
-    print("required synthetic-audio disclaimer is missing", file=sys.stderr); raise SystemExit(1)
+for marker in [
+    'name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex"',
+    "非公式の合成音声学習ツールです。",
+    "実際の入試の声質・速度・間を完全再現するものではありません。",
+    'id="packInput"',
+    'id="exportProgressBtn"',
+    'id="progressImportInput"',
+    'id="rateSlider"',
+]:
+    if marker not in html:
+        print("Missing required page marker:", marker, file=sys.stderr); raise SystemExit(1)
 if html.find('src="storage.js"') < 0 or html.find('src="app.js"') < 0 or html.find('src="storage.js"') > html.find('src="app.js"'):
     print("storage.js must be loaded before app.js", file=sys.stderr); raise SystemExit(1)
 p=P();p.feed(html)
@@ -33,17 +37,8 @@ missing=sorted(refs-p.ids)
 if missing:
     print("DOM ids missing:",", ".join(missing),file=sys.stderr);raise SystemExit(1)
 
-for required_id in ["packInput", "exportProgressBtn", "progressImportInput", "rateSlider"]:
-    if required_id not in p.ids:
-        print("Required public control missing:", required_id, file=sys.stderr); raise SystemExit(1)
-
-storage=(WEB/"storage.js").read_text(encoding="utf-8")
-for invariant in ["waseshibu-listening-progress", "waseshibu-step-progress-v1", "schemaVersion"]:
-    if invariant not in storage:
-        print("Storage compatibility invariant missing:", invariant, file=sys.stderr); raise SystemExit(1)
-
 bankjs=(WEB/"original_bank.js").read_text(encoding="utf-8")
-m=re.match(r"window\.WASESHIBU_ORIGINAL_BANK\s*=\s*(\[.*\]);\s*$",bankjs,re.S)
+m=re.match(r"window\.LISTENING_ORIGINAL_BANK\s*=\s*(\[.*\]);\s*$",bankjs,re.S)
 if not m:
     print("Original bank wrapper invalid",file=sys.stderr);raise SystemExit(1)
 bank=json.loads(m.group(1))

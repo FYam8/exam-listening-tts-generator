@@ -1,12 +1,12 @@
-# Build Report — Persistence / Export-Import Upgrade
+# Build Report — Authorized Public / Noindex v6
 
-Generated: 2026-08-29T21:01:35
+2026-08-29T22:28:01
 
-- **PASS** `node scripts/storage_roundtrip_test.js`
-  - PASS: storage migration, automatic persistence, backup recovery, export/import round trip, checksum, and merge semantics.
-- **PASS** `node --check web/storage.js`
-- **PASS** `node --check web/app.js`
-- **PASS** `python3 scripts/web_smoke_test.py`
-  - PASS: web smoke test; DOM references exist; original bank has 110 items with separate drill/retention pools.
-- **PASS** `python3 scripts/publication_audit.py`
-  - PASS: the full public repository contains no Private Pack, forbidden media, archive, or detected credential.
+- PASS `node --check web/config.js`
+- PASS `node --check web/storage.js`
+- PASS `node --check web/app.js`
+- PASS `node scripts/storage_roundtrip_test.js`
+- PASS `python3 scripts/web_smoke_test.py`
+- PASS `python3 scripts/publication_audit.py`
+- PASS `python3 scripts/authorized_public_audit.py`
+- PASS `node scripts/bundled_pack_runtime_test.js`

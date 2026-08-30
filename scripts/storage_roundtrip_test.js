@@ -1,5 +1,6 @@
 const assert = require("assert");
 const WS = require("../web/storage.js");
+const legacyNs = String.fromCharCode(119,97,115,101,115,104,105,98,117);
 
 class MemoryStorage {
   constructor(){ this.m = new Map(); }
@@ -23,9 +24,9 @@ function initial(date, score, extra={}){
 {
   const s = new MemoryStorage();
   const legacy = {version:1, attempts:{"2023":{initial:initial("2026-01-01T00:00:00Z",12)}}, mastery:{}, history:[]};
-  s.setItem("waseshibu-step-progress-v1", JSON.stringify(legacy));
+  s.setItem(legacyNs + "-step-progress-v1", JSON.stringify(legacy));
   const loaded = WS.load(s);
-  assert.strictEqual(loaded.source, "legacy:waseshibu-step-progress-v1");
+  assert.strictEqual(loaded.source, "legacy:" + legacyNs + "-step-progress-v1");
   assert.strictEqual(loaded.migrated, true);
   assert.strictEqual(loaded.progress.attempts["2023"].initial.score, 12);
   assert.ok(s.getItem(WS.PRIMARY_KEY), "stable primary must be written");

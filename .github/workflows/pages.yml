@@ -24,10 +24,14 @@ jobs:
           python-version: "3.11"
       - name: Publication audit
         run: python scripts/publication_audit.py
+      - name: Authorized public/noindex audit
+        run: python scripts/authorized_public_audit.py
       - name: Web smoke test
         run: python scripts/web_smoke_test.py
       - name: Storage migration/export/import tests
         run: node scripts/storage_roundtrip_test.js
+      - name: Bundled pack runtime test
+        run: node scripts/bundled_pack_runtime_test.js
       - name: Storage JavaScript syntax check
         run: node --check web/storage.js
       - name: JavaScript syntax check
@@ -42,8 +46,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
