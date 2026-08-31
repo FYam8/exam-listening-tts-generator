@@ -1,4 +1,4 @@
-name: Deploy audited listening v18
+name: Deploy audited listening v20
 
 on:
   push:
@@ -89,18 +89,45 @@ jobs:
           cat .v18_delta4k/p*.b64 | base64 --decode > /tmp/v18_delta.tar.xz
           echo 'd760bbb14f3a66bd31c844ade823055abe514b1aff64a88548eb18d42a74c5fe  /tmp/v18_delta.tar.xz' | sha256sum -c -
           tar -xJf /tmp/v18_delta.tar.xz -C /tmp/listening-release
+
+      - name: Apply verified v20 overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            cat .v20_overlay/p00.b64 .v20_overlay/p01.b64 .v20_overlay/p02.b64
+            cat .v20_overlay/p012.b64 .v20_overlay/p013.b64 .v20_overlay/p014.b64 .v20_overlay/p015.b64 .v20_overlay/p016.b64 .v20_overlay/p017.b64
+            cat .v20_overlay/p018.b64 .v20_overlay/p019.b64 .v20_overlay/p020.b64 .v20_overlay/p021.b64 .v20_overlay/p022.b64 .v20_overlay/p023.b64
+            cat .v20_overlay/p024.b64 .v20_overlay/p025.b64 .v20_overlay/p026.b64 .v20_overlay/p027.b64 .v20_overlay/p028.b64 .v20_overlay/p029.b64
+            cat .v20_overlay/p030.b64 .v20_overlay/p031.b64 .v20_overlay/p032.b64 .v20_overlay/p033.b64 .v20_overlay/p034.b64 .v20_overlay/p035.b64
+            cat .v20_overlay/p036.b64 .v20_overlay/p037.b64 .v20_overlay/p038.b64 .v20_overlay/p039.b64 .v20_overlay/p040.b64 .v20_overlay/p041.b64
+            cat .v20_overlay/p042.b64 .v20_overlay/p043.b64 .v20_overlay/p044.b64 .v20_overlay/p045.b64
+            cat .v20_overlay/s00.b64 .v20_overlay/s01.b64 .v20_overlay/s02.b64 .v20_overlay/s03.b64 .v20_overlay/s04.b64 .v20_overlay/s05.b64 .v20_overlay/s06.b64
+            cat .v20_overlay/p074.b64 .v20_overlay/p075.b64
+            cat .v20_overlay/t00.b64 .v20_overlay/t01.b64 .v20_overlay/t02.b64 .v20_overlay/t03.b64 .v20_overlay/t04.b64 .v20_overlay/t05.b64 .v20_overlay/t06.b64 .v20_overlay/t07.b64
+            cat .v20_overlay/t08.b64 .v20_overlay/t09.b64 .v20_overlay/t10.b64 .v20_overlay/t11.b64 .v20_overlay/t12.b64 .v20_overlay/t13.b64 .v20_overlay/t14.b64 .v20_overlay/t15.b64
+          } | base64 --decode > /tmp/v20_overlay.tar.gz
+          echo '8a92a05f48585d87a5a025a601cc066edab591b8e2d92017642d04897a3abe34  /tmp/v20_overlay.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/v20_overlay.tar.gz -C /tmp/listening-release
           cd /tmp/listening-release
-          echo '7f75dcd1e7a80d793dc971a9e7232b7b84b164bff4ed6a6ecda1e36ed8242003  .github/workflows/pages.yml' | sha256sum -c -
-          echo '89016e6b184e50dadb0cbb1777d1f4e16c2cf8aad33808978d8d3053403955b6  CHAT_HANDOFF.md' | sha256sum -c -
-          echo '0bd9462c1d6fc16358490723efd43a6c4809aa143c456ce015970941212ebdcd  GITHUB_PUBLISHING.md' | sha256sum -c -
-          echo 'd95dfda40f2801d0145a92ec3638cc0f58caaaa14ea5944de4e7f4de55d8ba3d  README.md' | sha256sum -c -
-          echo '86c289996d908ec051ee409fbae349c98f7dee48725021ee260826e2a70b311b  V18_FRESH_START_AUDIT.md' | sha256sum -c -
-          echo '9b9bdd990c45a4e3af557cc743d9ace36daf715597d0acba435cc2d0a284de83  scripts/exam_choice_ui_test.js' | sha256sum -c -
-          echo '5375c401778fa56508fddda146441c9c5d23cea1d5a5288d9ea7d36196764cd9  scripts/fresh_start_ui_test.js' | sha256sum -c -
-          echo '53dfb37dfab62208cbdbf3ef4aaca80edc83934e3cef088fbecdf60cb8e521d7  scripts/release_readiness_audit.py' | sha256sum -c -
-          echo 'c0c21464864200a3def28ce2cdfd7588fbec4695152a7a4d579249ad29bba365  web/app.js' | sha256sum -c -
-          echo '6b68bd8b308d477511cdd169d94cc0f9432f35a8597d192ba4a5ed7c5a8aeb62  web/index.html' | sha256sum -c -
-          echo '7b5269d210cb9d68e4caec6c200a3208712097d8c81d64299924ca4738800dd3  web/styles.css' | sha256sum -c -
+          echo '1c2639882be48b21255c17b96198b76fc9ba47d94596e17ffbb5bd0c8c8cc1e3  .github/workflows/pages.yml' | sha256sum -c -
+          echo '93f4b48e51f09f4d5c12a76fd84d61813d1bf55585dfdb602f0f86a4906e61be  CHAT_HANDOFF.md' | sha256sum -c -
+          echo '9b0e668b4e9843858fc77eb326b87d96b31ac2e84db145d35cb704918436bd8a  GITHUB_PUBLISHING.md' | sha256sum -c -
+          echo '495047cb5e599f80a8c210d730c73ca0758539bb6b91e7217617f4b765d31894  README.md' | sha256sum -c -
+          echo '3cad2bc25411699c3a0e1656831c67f95f1dbc2387d282cfa32ec4193e93ea8d  V19_ALL_CHOICE_SURFACES_AUDIT.md' | sha256sum -c -
+          echo '5652ec476f3d38fa5006b94663a4a6c164e4d622b1c70fc41073d68b9cbf9642  V20_REAL_BROWSER_E2E_AUDIT.md' | sha256sum -c -
+          echo '52de04ae425e1394c972b0be26b44eaa0a680c3d64ff503751e357513a61405a  scripts/all_choice_surfaces_test.js' | sha256sum -c -
+          echo '766088572b77294c15bc2b78186a61ba5348dfd4858d263ed0c265f647ea371c  scripts/browser_debug_v20.py' | sha256sum -c -
+          echo '77f67ecde8a096579ffa6d81314169966795eac1f30900a2ee0a01186ce09164  scripts/browser_e2e_test.py' | sha256sum -c -
+          echo '383192ee6bdc6988d5370357809883be90d73e40e29d28b55d1b985547acd41a  scripts/check_dupes.js' | sha256sum -c -
+          echo '8cd861fef1deeb1ceadcc14b399fffb6cb8b75a67e50e5ed95eb26e3e3f7be3d  scripts/e2e_state_guard_test.js' | sha256sum -c -
+          echo '3b55154881b6d9d00a8231543b4862e34e404d7601ef27c163d418086a2e0163  scripts/exam_choice_ui_test.js' | sha256sum -c -
+          echo 'a84b0bd732164871cd3ed6ae789367bcee169a59622cee669526aaa25a07f5fa  scripts/fresh_start_ui_test.js' | sha256sum -c -
+          echo '0cf6e16c607d41aa14fd3b74eb9a890910226a27155035248a7fd28cae569f11  scripts/rediagnosis_ui_test.js' | sha256sum -c -
+          echo '69f4dbb5612d4ae56dc7c63395734c489830aec90d139b0bb55c3ea05ebe9cdc  scripts/release_readiness_audit.py' | sha256sum -c -
+          echo '9e023373150e70ba804df11ff60b4384bb1d4b1f83eb25d855ef0aafa0064efb  scripts/show_item.js' | sha256sum -c -
+          echo 'e287bfc73eebd43c5c9a41e490d21908105b96b29f38dfca61e74dcaf4b76659  web/app.js' | sha256sum -c -
+          echo 'e0c80d8e6592ef824a973f82a0026aaed90f77654dceda1fa96487c6b6e622f9  web/index.html' | sha256sum -c -
 
       - name: Run release audits
         working-directory: /tmp/listening-release
@@ -123,13 +150,25 @@ jobs:
           node scripts/script_forward_test.js
           node scripts/exam_choice_ui_test.js
           node scripts/fresh_start_ui_test.js
+          node scripts/all_choice_surfaces_test.js
+          node scripts/e2e_state_guard_test.js
           node --check web/config.js
           node --check web/storage.js
           node --check web/voice_profiles.js
           node --check web/study_plan.js
-          node --check web/transfer_bank.js
           node --check web/target_strategy.js
+          node --check web/transfer_bank.js
           node --check web/app.js
+
+      - name: Install Playwright browser
+        working-directory: /tmp/listening-release
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Real browser E2E
+        working-directory: /tmp/listening-release
+        run: python scripts/browser_e2e_test.py
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
