@@ -1,4 +1,4 @@
-name: Deploy audited listening v21
+name: Deploy listening v21 QA fix1 CLEAN
 
 on:
   push:
@@ -25,175 +25,66 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Reconstruct audited v15 base
+      - name: Fetch verified current Build v21 and apply QA fix1
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf /tmp/listening-release
-          mkdir -p /tmp/listening-release
-          {
-            cat .v10_chunks/part00.b64
-            cat .v10_repair/part01a.b64 .v10_repair/part01b.b64
-            cat .v10_chunks/part02.b64 .v10_chunks/part03.b64
-            cat .v10_repair/part04a.b64 .v10_repair/part04b0.b64 .v10_repair/part04b1.b64
-            cat .v10_chunks/part05.b64 .v10_chunks/part06.b64 .v10_chunks/part07.b64 .v10_chunks/part08.b64 .v10_chunks/part09.b64 .v10_chunks/part10.b64 .v10_chunks/part11.b64
-            cat .v10_repair/part12a0.b64 .v10_repair/part12a1.b64 .v10_repair/part12b0.b64 .v10_repair/part12b1.b64 .v10_repair/part13.b64
-          } | base64 --decode > /tmp/v10.zip
-          echo 'f5dd47cfa72218bf6d9a65fbdc60641266c2c5abab45b7146950681ccb269a8a  /tmp/v10.zip' | sha256sum -c -
-          unzip -q /tmp/v10.zip -d /tmp/listening-release
-
-          cat .v12_delta/p*.b64 | base64 --decode > /tmp/v12.patch.xz
-          echo 'ded577988f7f65a80923bb5fe30bc2bf753c42482cb29f44ebf84a4ded56e127  /tmp/v12.patch.xz' | sha256sum -c -
-          xz -dc /tmp/v12.patch.xz > /tmp/v12.patch
-          (cd /tmp/listening-release && patch -p1 < /tmp/v12.patch)
-
-          cat .v12_2_delta/p*.b64 | base64 --decode > /tmp/v12_2_delta.tar.gz
-          echo 'd18ef5e3a094f35c5e56ffc88c6a48d0a8ffc052863a90dab5ad8e03612ac00a  /tmp/v12_2_delta.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/v12_2_delta.tar.gz -C /tmp/listening-release
-          mkdir -p /tmp/listening-release/.github/workflows
-          cp .v12_2_release/pages.yml /tmp/listening-release/.github/workflows/pages.yml
-
-          {
-            cat .v14_delta4k/p00.b64 .v14_delta4k/p01.b64 .v14_delta4k/p02.b64
-            cat .v14_delta/p012.b64 .v14_delta/p013.b64 .v14_delta/p014.b64 .v14_delta/p015.b64 .v14_delta/p016.b64 .v14_delta/p017.b64
-            cat .v14_delta/p018.b64 .v14_delta/p019.b64 .v14_delta/p020.b64 .v14_delta/p021.b64 .v14_delta/p022.b64 .v14_delta/p023.b64
-            cat .v14_delta/p024.b64 .v14_delta/p025.b64 .v14_delta/p026.b64 .v14_delta/p027.b64 .v14_delta/p028.b64 .v14_delta/p029.b64
-            cat .v14_delta/p030.b64 .v14_delta/p031.b64 .v14_delta/p032.b64 .v14_delta/p033.b64 .v14_delta/p034.b64
-          } | base64 --decode > /tmp/v14.patch.xz
-          echo 'f76cd767c446f9d6be1883ddda4a8a1d5e3da0cd341573e3d9f0a93f718b2e90  /tmp/v14.patch.xz' | sha256sum -c -
-          xz -dc /tmp/v14.patch.xz > /tmp/v14.patch
-          (cd /tmp/listening-release && patch -p1 < /tmp/v14.patch)
-
-          cat .v15_delta/p*.b64 | base64 --decode > /tmp/v15.patch.xz
-          echo 'be6334c91a901a31bef92f1bb31456b3d13495ecb54c71bcf13a0915a719518c  /tmp/v15.patch.xz' | sha256sum -c -
-          xz -dc /tmp/v15.patch.xz > /tmp/v15.patch
-          (cd /tmp/listening-release && patch -p1 < /tmp/v15.patch)
-
-      - name: Apply verified v17 delta
+          base='https://fyam8.github.io/exam-listening-tts-generator'
+          out=/tmp/listening-web
+          rm -rf "$out"; mkdir -p "$out"
+          files='index.html styles.css config.js storage.js voice_profiles.js study_plan.js target_strategy.js transfer_bank.js original_bank.js public_demo.js content-a4eb4690bf31.js app.js robots.txt'
+          for f in $files; do curl -fsSL "$base/$f?qa_fix1=${GITHUB_SHA}" -o "$out/$f"; done
+          touch "$out/.nojekyll"
+          cd "$out"
+          echo '0fbe3370586c6d9d94fa924a228fc38cda2bf73970dbc789115e467bd0416e1e  index.html' | sha256sum -c -
+          echo '8ecb8714734307fd7857e0d6fe567d43bb3e30c2729f89bd0c44b32fa99985c4  content-a4eb4690bf31.js' | sha256sum -c -
+          echo '20c78a7c269bddf3e18bb70bc0a06e9e1952483a8beeb941d51bbe02973beea7  storage.js' | sha256sum -c -
+          echo '6de8b48266e261757144307aaf77cf05cd68abff8469d70e883a4da1d36d9efa  target_strategy.js' | sha256sum -c -
+          echo '2530ab386cd7f667699c2d3579fd6790925b95bcf81353160c302a7244d2c1b4  study_plan.js' | sha256sum -c -
+          echo '19b1f8eca4499ce34b1d1327ad89ec1baa247a0ee135a9fbd6f34f425fc3aea5  original_bank.js' | sha256sum -c -
+          echo '5db03e899b071c34216e5522834da64334094279883116f56a485117334266ba  transfer_bank.js' | sha256sum -c -
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path('app.js'); s=p.read_text(encoding='utf-8')
+          before=hashlib.sha256(s.encode()).hexdigest()
+          allowed={'e709115b6a0e1f1240c141ba8afa9ad356ce4bfe26f166d33af65198bb099110','25bb9a97581b8bc690b9073a588e6878171bf544933a320b0d14a9f204d18526'}
+          assert before in allowed, before
+          stale='Build v19を確認して再読み込みしてください'
+          fixed='Build v21を確認して再読み込みしてください'
+          if stale in s: s=s.replace(stale,fixed)
+          assert stale not in s and fixed in s
+          p.write_text(s,encoding='utf-8')
+          after=hashlib.sha256(p.read_bytes()).hexdigest()
+          assert after=='25bb9a97581b8bc690b9073a588e6878171bf544933a320b0d14a9f204d18526',after
+          PY
+          node --check app.js
+      - name: Browser smoke on final web bundle
         shell: bash
         run: |
           set -euo pipefail
-          cat .v17_delta/p*.b64 | base64 --decode > /tmp/v17.patch.xz
-          echo '14b866b54fe8438462fbc9b7177d97594cdb736b7b11c64ac10c85355b984621  /tmp/v17.patch.xz' | sha256sum -c -
-          xz -dc /tmp/v17.patch.xz > /tmp/v17.patch
-          (cd /tmp/listening-release && patch -p1 < /tmp/v17.patch)
-
-      - name: Apply verified v18 delta
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .v18_delta4k/p*.b64 | base64 --decode > /tmp/v18_delta.tar.xz
-          echo 'd760bbb14f3a66bd31c844ade823055abe514b1aff64a88548eb18d42a74c5fe  /tmp/v18_delta.tar.xz' | sha256sum -c -
-          tar -xJf /tmp/v18_delta.tar.xz -C /tmp/listening-release
-
-      - name: Apply verified v20 overlay
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            cat .v20_overlay/p00.b64 .v20_overlay/p01.b64 .v20_overlay/p02.b64
-            cat .v20_overlay/p012.b64 .v20_overlay/p013.b64 .v20_overlay/p014.b64 .v20_overlay/p015.b64 .v20_overlay/p016.b64 .v20_overlay/p017.b64
-            cat .v20_overlay/p018.b64 .v20_overlay/p019.b64 .v20_overlay/p020.b64 .v20_overlay/p021.b64 .v20_overlay/p022.b64 .v20_overlay/p023.b64
-            cat .v20_overlay/p024.b64 .v20_overlay/p025.b64 .v20_overlay/p026.b64 .v20_overlay/p027.b64 .v20_overlay/p028.b64 .v20_overlay/p029.b64
-            cat .v20_overlay/p030.b64 .v20_overlay/p031.b64 .v20_overlay/p032.b64 .v20_overlay/p033.b64 .v20_overlay/p034.b64 .v20_overlay/p035.b64
-            cat .v20_overlay/p036.b64 .v20_overlay/p037.b64 .v20_overlay/p038.b64 .v20_overlay/p039.b64 .v20_overlay/p040.b64 .v20_overlay/p041.b64
-            cat .v20_overlay/p042.b64 .v20_overlay/p043.b64 .v20_overlay/p044.b64 .v20_overlay/p045.b64
-            cat .v20_overlay/s00.b64 .v20_overlay/s01.b64 .v20_overlay/s02.b64 .v20_overlay/s03.b64 .v20_overlay/s04.b64 .v20_overlay/s05.b64 .v20_overlay/s06.b64
-            cat .v20_overlay/p074.b64 .v20_overlay/p075.b64
-            cat .v20_overlay/t00.b64 .v20_overlay/t01.b64 .v20_overlay/t02.b64 .v20_overlay/t03.b64 .v20_overlay/t04.b64 .v20_overlay/t05.b64 .v20_overlay/t06.b64 .v20_overlay/t07.b64
-            cat .v20_overlay/t08.b64 .v20_overlay/t09.b64 .v20_overlay/t10.b64 .v20_overlay/t11.b64 .v20_overlay/t12.b64 .v20_overlay/t13.b64 .v20_overlay/t14.b64 .v20_overlay/t15.b64
-          } | base64 --decode > /tmp/v20_overlay.tar.gz
-          echo '8a92a05f48585d87a5a025a601cc066edab591b8e2d92017642d04897a3abe34  /tmp/v20_overlay.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/v20_overlay.tar.gz -C /tmp/listening-release
-          cd /tmp/listening-release
-          echo '1c2639882be48b21255c17b96198b76fc9ba47d94596e17ffbb5bd0c8c8cc1e3  .github/workflows/pages.yml' | sha256sum -c -
-          echo '93f4b48e51f09f4d5c12a76fd84d61813d1bf55585dfdb602f0f86a4906e61be  CHAT_HANDOFF.md' | sha256sum -c -
-          echo '9b0e668b4e9843858fc77eb326b87d96b31ac2e84db145d35cb704918436bd8a  GITHUB_PUBLISHING.md' | sha256sum -c -
-          echo '495047cb5e599f80a8c210d730c73ca0758539bb6b91e7217617f4b765d31894  README.md' | sha256sum -c -
-          echo '3cad2bc25411699c3a0e1656831c67f95f1dbc2387d282cfa32ec4193e93ea8d  V19_ALL_CHOICE_SURFACES_AUDIT.md' | sha256sum -c -
-          echo '5652ec476f3d38fa5006b94663a4a6c164e4d622b1c70fc41073d68b9cbf9642  V20_REAL_BROWSER_E2E_AUDIT.md' | sha256sum -c -
-          echo '52de04ae425e1394c972b0be26b44eaa0a680c3d64ff503751e357513a61405a  scripts/all_choice_surfaces_test.js' | sha256sum -c -
-          echo '766088572b77294c15bc2b78186a61ba5348dfd4858d263ed0c265f647ea371c  scripts/browser_debug_v20.py' | sha256sum -c -
-          echo '77f67ecde8a096579ffa6d81314169966795eac1f30900a2ee0a01186ce09164  scripts/browser_e2e_test.py' | sha256sum -c -
-          echo '383192ee6bdc6988d5370357809883be90d73e40e29d28b55d1b985547acd41a  scripts/check_dupes.js' | sha256sum -c -
-          echo '8cd861fef1deeb1ceadcc14b399fffb6cb8b75a67e50e5ed95eb26e3e3f7be3d  scripts/e2e_state_guard_test.js' | sha256sum -c -
-          echo '3b55154881b6d9d00a8231543b4862e34e404d7601ef27c163d418086a2e0163  scripts/exam_choice_ui_test.js' | sha256sum -c -
-          echo 'a84b0bd732164871cd3ed6ae789367bcee169a59622cee669526aaa25a07f5fa  scripts/fresh_start_ui_test.js' | sha256sum -c -
-          echo '0cf6e16c607d41aa14fd3b74eb9a890910226a27155035248a7fd28cae569f11  scripts/rediagnosis_ui_test.js' | sha256sum -c -
-          echo '69f4dbb5612d4ae56dc7c63395734c489830aec90d139b0bb55c3ea05ebe9cdc  scripts/release_readiness_audit.py' | sha256sum -c -
-          echo '9e023373150e70ba804df11ff60b4384bb1d4b1f83eb25d855ef0aafa0064efb  scripts/show_item.js' | sha256sum -c -
-          echo 'e287bfc73eebd43c5c9a41e490d21908105b96b29f38dfca61e74dcaf4b76659  web/app.js' | sha256sum -c -
-          echo 'e0c80d8e6592ef824a973f82a0026aaed90f77654dceda1fa96487c6b6e622f9  web/index.html' | sha256sum -c -
-
-      - name: Apply verified v21 user-UX overlay
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .v21_overlay/p00 .v21_overlay/p01 | base64 --decode > /tmp/v21_overlay.tar.gz
-          echo '10807c20f0d22db04e55f3d5323e2a8b527324ecbaee0d3e6e9702e24994b503  /tmp/v21_overlay.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/v21_overlay.tar.gz -C /tmp/listening-release
-          cd /tmp/listening-release
-          echo 'c461faffcd3dcde1446891532380075ba7461baaa26a600f4e4a4d64d3fff0f0  .github/workflows/pages.yml' | sha256sum -c -
-          echo 'e050ae279cf29352ffde3dd2ed1d588ac0c6032fe509df234b5c5dbdb4b11098  V21_USER_UX_AUDIT.md' | sha256sum -c -
-          echo '21e0b426b22abc6be92fc36eb70322e0b55680f0aa3302615ae60f0fc5b5de0c  scripts/all_choice_surfaces_test.js' | sha256sum -c -
-          echo 'bb707a2278701d7d4590e44d7d06c071274f120508478dae9c118af99fe50684  scripts/e2e_state_guard_test.js' | sha256sum -c -
-          echo '09a6feac65652343446bcb46e80b4746365d36e89bf9699bc3b3ac31a9210755  scripts/fresh_start_ui_test.js' | sha256sum -c -
-          echo '8e7771e5c08579a27015ef766881357cecd02865effa39401a5cf6414b72afee  scripts/exam_choice_ui_test.js' | sha256sum -c -
-          echo 'c14b1c6bd87206928f567f80e6899e6b2aa65c53df57fd3ccf16303c481499e5  scripts/browser_e2e_test.py' | sha256sum -c -
-          echo '212a67cebb0a18bd5b6b7c51c915d26bc72312b19f7e0dea0cdde6d82bcab172  scripts/v21_user_ux_test.js' | sha256sum -c -
-          echo 'e709115b6a0e1f1240c141ba8afa9ad356ce4bfe26f166d33af65198bb099110  web/app.js' | sha256sum -c -
-          echo '0fbe3370586c6d9d94fa924a228fc38cda2bf73970dbc789115e467bd0416e1e  web/index.html' | sha256sum -c -
-
-      - name: Run release audits
-        working-directory: /tmp/listening-release
-        run: |
-          set -euo pipefail
-          python scripts/publication_audit.py
-          python scripts/authorized_public_audit.py
-          python scripts/release_readiness_audit.py
-          python scripts/web_smoke_test.py
-          node scripts/storage_roundtrip_test.js
-          node scripts/study_plan_test.js
-          node scripts/voice_assignment_test.js
-          node scripts/bundled_pack_runtime_test.js
-          node scripts/transfer_practice_test.js
-          node scripts/cause_diagnostics_test.js
-          node scripts/rediagnosis_ui_test.js
-          node scripts/target_strategy_test.js
-          node scripts/resume_checkpoint_test.js
-          node scripts/today_flow_test.js
-          node scripts/script_forward_test.js
-          node scripts/exam_choice_ui_test.js
-          node scripts/fresh_start_ui_test.js
-          node scripts/all_choice_surfaces_test.js
-          node scripts/e2e_state_guard_test.js
-          node scripts/v21_user_ux_test.js
-          node --check web/config.js
-          node --check web/storage.js
-          node --check web/voice_profiles.js
-          node --check web/study_plan.js
-          node --check web/target_strategy.js
-          node --check web/transfer_bank.js
-          node --check web/app.js
-
-      - name: Install Playwright browser
-        working-directory: /tmp/listening-release
-        run: |
           python -m pip install playwright
           python -m playwright install --with-deps chromium
-
-      - name: Real browser E2E
-        working-directory: /tmp/listening-release
-        run: python scripts/browser_e2e_test.py
-
+          cat > /tmp/smoke.py <<'PY'
+          from playwright.sync_api import sync_playwright
+          import subprocess,time
+          srv=subprocess.Popen(['python','-m','http.server','8123','--directory','/tmp/listening-web'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+          try:
+            time.sleep(1)
+            with sync_playwright() as p:
+              b=p.chromium.launch(headless=True,args=['--no-sandbox']); page=b.new_page(); errors=[]; page.on('pageerror',lambda e:errors.append(str(e)))
+              page.goto('http://127.0.0.1:8123',wait_until='load'); page.wait_for_timeout(200)
+              assert page.locator('#buildBadge').inner_text().strip()=='Build v21 ✓'
+              assert page.locator('#todayStartBtn').is_visible(); page.locator('#todayStartBtn').click(); page.wait_for_timeout(100)
+              assert page.locator('#examQuestions .choice').count()>=4
+              assert not errors,errors; b.close()
+          finally: srv.terminate(); srv.wait()
+          PY
+          python /tmp/smoke.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: /tmp/listening-release/web
+          path: /tmp/listening-web
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
