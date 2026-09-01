@@ -134,7 +134,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .v21_overlay/p00 .v21_overlay/p01 | base64 --decode > /tmp/v21_overlay.tar.gz
-          echo 'db43aa143555c5d7016064cc0140a36d948a7af0fc0d98c1baee7d5175282710  /tmp/v21_overlay.tar.gz' | sha256sum -c -
+          echo '10807c20f0d22db04e55f3d5323e2a8b527324ecbaee0d3e6e9702e24994b503  /tmp/v21_overlay.tar.gz' | sha256sum -c -
           tar -xzf /tmp/v21_overlay.tar.gz -C /tmp/listening-release
           cd /tmp/listening-release
           echo 'c461faffcd3dcde1446891532380075ba7461baaa26a600f4e4a4d64d3fff0f0  .github/workflows/pages.yml' | sha256sum -c -
@@ -143,7 +143,7 @@ jobs:
           echo 'bb707a2278701d7d4590e44d7d06c071274f120508478dae9c118af99fe50684  scripts/e2e_state_guard_test.js' | sha256sum -c -
           echo '09a6feac65652343446bcb46e80b4746365d36e89bf9699bc3b3ac31a9210755  scripts/fresh_start_ui_test.js' | sha256sum -c -
           echo '8e7771e5c08579a27015ef766881357cecd02865effa39401a5cf6414b72afee  scripts/exam_choice_ui_test.js' | sha256sum -c -
-          echo 'f90961e9839eb220f229584ee3fe814743962d1cbc809376c69200a9b3f0fa92  scripts/browser_e2e_test.py' | sha256sum -c -
+          echo 'c14b1c6bd87206928f567f80e6899e6b2aa65c53df57fd3ccf16303c481499e5  scripts/browser_e2e_test.py' | sha256sum -c -
           echo '212a67cebb0a18bd5b6b7c51c915d26bc72312b19f7e0dea0cdde6d82bcab172  scripts/v21_user_ux_test.js' | sha256sum -c -
           echo 'e709115b6a0e1f1240c141ba8afa9ad356ce4bfe26f166d33af65198bb099110  web/app.js' | sha256sum -c -
           echo '0fbe3370586c6d9d94fa924a228fc38cda2bf73970dbc789115e467bd0416e1e  web/index.html' | sha256sum -c -
