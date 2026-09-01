@@ -1,4 +1,4 @@
-name: Deploy listening v21 QA fix1 CLEAN
+name: Deploy listening v22 two-pass CLEAN
 
 on:
   push:
@@ -25,7 +25,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Fetch verified current Build v21 and apply QA fix1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch and verify current v21 base
         shell: bash
         run: |
           set -euo pipefail
@@ -33,7 +37,7 @@ jobs:
           out=/tmp/listening-web
           rm -rf "$out"; mkdir -p "$out"
           files='index.html styles.css config.js storage.js voice_profiles.js study_plan.js target_strategy.js transfer_bank.js original_bank.js public_demo.js content-a4eb4690bf31.js app.js robots.txt'
-          for f in $files; do curl -fsSL "$base/$f?qa_fix1=${GITHUB_SHA}" -o "$out/$f"; done
+          for f in $files; do curl -fsSL "$base/$f?v22_base=${GITHUB_SHA}" -o "$out/$f"; done
           touch "$out/.nojekyll"
           cd "$out"
           echo '0fbe3370586c6d9d94fa924a228fc38cda2bf73970dbc789115e467bd0416e1e  index.html' | sha256sum -c -
@@ -43,44 +47,63 @@ jobs:
           echo '2530ab386cd7f667699c2d3579fd6790925b95bcf81353160c302a7244d2c1b4  study_plan.js' | sha256sum -c -
           echo '19b1f8eca4499ce34b1d1327ad89ec1baa247a0ee135a9fbd6f34f425fc3aea5  original_bank.js' | sha256sum -c -
           echo '5db03e899b071c34216e5522834da64334094279883116f56a485117334266ba  transfer_bank.js' | sha256sum -c -
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib
-          p=Path('app.js'); s=p.read_text(encoding='utf-8')
-          before=hashlib.sha256(s.encode()).hexdigest()
-          allowed={'e709115b6a0e1f1240c141ba8afa9ad356ce4bfe26f166d33af65198bb099110','25bb9a97581b8bc690b9073a588e6878171bf544933a320b0d14a9f204d18526'}
-          assert before in allowed, before
-          stale='Build v19を確認して再読み込みしてください'
-          fixed='Build v21を確認して再読み込みしてください'
-          if stale in s: s=s.replace(stale,fixed)
-          assert stale not in s and fixed in s
-          p.write_text(s,encoding='utf-8')
-          after=hashlib.sha256(p.read_bytes()).hexdigest()
-          assert after=='25bb9a97581b8bc690b9073a588e6878171bf544933a320b0d14a9f204d18526',after
-          PY
+          echo '25bb9a97581b8bc690b9073a588e6878171bf544933a320b0d14a9f204d18526  app.js' | sha256sum -c -
+
+      - name: Apply and verify v22 two-pass-clean overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v22_overlay/p*.b64 | base64 --decode > /tmp/v22_overlay.tar.xz
+          echo '61358e5ec56e51513d9432555139cc68ace35b3719af990305dfef278cc01f9c  /tmp/v22_overlay.tar.xz' | sha256sum -c -
+          rm -rf /tmp/v22-overlay; mkdir -p /tmp/v22-overlay
+          tar -xJf /tmp/v22_overlay.tar.xz -C /tmp/v22-overlay
+          cp /tmp/v22-overlay/web/app.js /tmp/listening-web/app.js
+          cp /tmp/v22-overlay/web/index.html /tmp/listening-web/index.html
+          cp /tmp/v22-overlay/web/styles.css /tmp/listening-web/styles.css
+          cd /tmp/listening-web
+          echo 'a699e516d8752cb3e866a2db58217ed34dcc973b46081c7f11d02df1ce5a5021  app.js' | sha256sum -c -
+          echo 'a1c379045097453d97d54c2a6cfe50feb342f4a64e85749355a261af8127f649  index.html' | sha256sum -c -
+          echo 'a66e8d12a6e69fb4f866c46df5250f6548f6355236a6aee2d845e38cb845e394  styles.css' | sha256sum -c -
+          grep -Fq 'Build v22' app.js
+          grep -Fq '?v=22' index.html
+          grep -Fq 'Transcript' app.js
+          grep -Fq 'もう一度音声を再生' app.js
           node --check app.js
-      - name: Browser smoke on final web bundle
+
+      - name: Browser smoke on final v22 bundle
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install playwright
           python -m playwright install --with-deps chromium
-          cat > /tmp/smoke.py <<'PY'
+          cat > /tmp/smoke_v22.py <<'PY'
           from playwright.sync_api import sync_playwright
           import subprocess,time
           srv=subprocess.Popen(['python','-m','http.server','8123','--directory','/tmp/listening-web'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
           try:
             time.sleep(1)
             with sync_playwright() as p:
-              b=p.chromium.launch(headless=True,args=['--no-sandbox']); page=b.new_page(); errors=[]; page.on('pageerror',lambda e:errors.append(str(e)))
-              page.goto('http://127.0.0.1:8123',wait_until='load'); page.wait_for_timeout(200)
-              assert page.locator('#buildBadge').inner_text().strip()=='Build v21 ✓'
-              assert page.locator('#todayStartBtn').is_visible(); page.locator('#todayStartBtn').click(); page.wait_for_timeout(100)
+              b=p.chromium.launch(headless=True,args=['--no-sandbox'])
+              page=b.new_page()
+              errors=[]
+              console_errors=[]
+              page.on('pageerror',lambda e:errors.append(str(e)))
+              page.on('console',lambda m:console_errors.append(m.text) if m.type=='error' else None)
+              page.goto('http://127.0.0.1:8123',wait_until='load')
+              page.wait_for_timeout(250)
+              assert page.locator('#buildBadge').inner_text().strip()=='Build v22 ✓'
+              assert page.locator('#todayStartBtn').is_visible()
+              page.locator('#todayStartBtn').click()
+              page.wait_for_timeout(150)
               assert page.locator('#examQuestions .choice').count()>=4
-              assert not errors,errors; b.close()
-          finally: srv.terminate(); srv.wait()
+              assert not errors, errors
+              assert not console_errors, console_errors
+              b.close()
+          finally:
+            srv.terminate(); srv.wait()
           PY
-          python /tmp/smoke.py
+          python /tmp/smoke_v22.py
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
