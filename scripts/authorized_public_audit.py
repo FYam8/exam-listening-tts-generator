@@ -117,10 +117,12 @@ if any(ROOT.rglob("*.private.json")):
     fail("private JSON must not exist in authorized public build")
 
 # Ensure script order: encoded pack before config, config before app.
-encoded_tag = f'<script src="{data_file.name}"></script>'
-if encoded_tag not in index:
+encoded_match = re.search(rf'<script src="{re.escape(data_file.name)}(?:\?[^"]*)?"></script>', index)
+config_match = re.search(r'src="config\.js(?:\?[^"]*)?"', index)
+app_match = re.search(r'src="app\.js(?:\?[^"]*)?"', index)
+if not encoded_match:
     fail("encoded content script missing from index.html")
-if not (index.find(encoded_tag) < index.find('src="config.js"') < index.find('src="app.js"')):
+if not config_match or not app_match or not (encoded_match.start() < config_match.start() < app_match.start()):
     fail("script order must be encoded content -> config -> app")
 
 print("PASS: noindex/robots interaction, generic source naming, encoded 80-question pack, and plaintext-leak checks verified.")

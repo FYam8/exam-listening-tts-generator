@@ -63,3 +63,153 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 @media(max-width:480px){.shell{width:calc(100% - 18px)}.card{padding:16px}.roadmap{grid-template-columns:1fr}.header-row{align-items:flex-start}.button-row>*{flex:1}.choice{grid-template-columns:34px 1fr}}
 
 .progress-transfer-card{margin-top:18px}.progress-transfer-actions{margin:12px 0 8px}
+
+/* UX v7: dashboard hierarchy, clickable review navigation, protected destructive action */
+.year-card{
+  appearance:none;width:100%;text-align:left;color:var(--ink);font:inherit;cursor:pointer;
+}
+.year-card:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(15,23,42,.08);border-color:#94a3b8}
+.year-card:focus-visible{outline:3px solid rgba(29,78,216,.25);outline-offset:2px}
+.year-review-hint{margin-top:4px;color:var(--blue);font-size:.78rem;font-weight:900}
+.year-card.locked .year-review-hint{color:var(--muted)}
+
+.skill-row-button{
+  width:100%;appearance:none;background:white;color:var(--ink);font:inherit;text-align:left;cursor:pointer;
+}
+.skill-row-button:hover{border-color:#94a3b8;background:#f8fafc}
+.skill-row-button:focus-visible{outline:3px solid rgba(29,78,216,.22);outline-offset:2px}
+.needs-action{color:var(--red)}
+
+.history-summary{margin:10px 0 14px}
+.history-mini-list{display:grid;gap:7px}
+.history-mini-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fafbfc}
+.soft-rule{border:0;border-top:1px solid var(--line);margin:18px 0}
+.danger-zone{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+.danger-zone summary{cursor:pointer;color:var(--muted);font-weight:800}
+.danger-zone-body{margin-top:12px;padding:14px;border:1px solid #fecaca;border-radius:12px;background:#fffafa}
+.danger-button{min-height:44px;padding:9px 14px;border-radius:10px;border:1px solid #ef4444;background:white;color:var(--red);font-weight:900}
+.danger-button:hover{background:var(--red-soft)}
+
+.data-card{margin-top:4px}
+.difficulty-legend{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.difficulty-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-size:.79rem;font-weight:800;border:1px solid var(--line)}
+.diff-a{background:#ecfdf3;color:#166534;border-color:#86efac}
+.diff-b{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
+.diff-c{background:#fff7ed;color:#9a3412;border-color:#fdba74}
+
+.review-list{display:grid;gap:12px}
+.review-question-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:white}
+.review-question-summary{
+  width:100%;display:grid;grid-template-columns:minmax(150px,1.2fr) auto auto auto;gap:10px;align-items:center;
+  padding:13px;border:0;background:white;color:var(--ink);font:inherit;text-align:left;cursor:pointer
+}
+.review-question-summary:hover{background:#f8fafc}
+.review-number{font-weight:900}
+.review-result{font-weight:900;font-size:.82rem}
+.review-result.correct{color:var(--green)}
+.review-result.wrong{color:var(--red)}
+.review-open-hint{color:var(--blue);font-size:.8rem;font-weight:850}
+.review-question-detail{padding:4px 14px 16px;border-top:1px solid var(--line)}
+.review-choice-grid{display:grid;gap:7px;margin:10px 0 14px}
+.review-choice{display:grid;grid-template-columns:36px 1fr auto;gap:9px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:10px}
+.review-choice.is-correct{border-color:#86efac;background:var(--green-soft)}
+.review-choice.is-mine-wrong{border-color:#fecaca;background:var(--red-soft)}
+.review-meta-row{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.review-script{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.review-script summary{cursor:pointer;font-weight:850}
+.review-script-body{display:grid;gap:8px;margin-top:10px}
+.review-script-line{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #eef2f6}
+.review-passage{white-space:pre-wrap;padding:10px;background:#f8fafc;border-radius:9px}
+.review-question-stem{display:grid;grid-template-columns:90px 1fr;gap:10px;padding-top:8px}
+.empty-review{padding:24px;text-align:center;background:#f8fafc;border-radius:12px}
+
+@media(max-width:760px){
+  .review-question-summary{grid-template-columns:1fr auto}
+  .review-open-hint{grid-column:1/-1}
+  .history-mini-row{grid-template-columns:1fr auto}
+  .history-mini-row .small{grid-column:1/-1}
+}
+
+.audio-compat-note{
+  margin:12px 0 0;padding:10px 12px;border-radius:10px;
+  background:#f8fafc;border:1px solid var(--line);color:var(--muted);font-size:.82rem
+}
+
+.transfer-profile{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px}
+.transfer-profile .pill{background:#f8fafc;color:#334155;border:1px solid var(--line)}
+.transfer-question{padding:14px 0;border-top:1px solid var(--line)}
+.transfer-question:first-child{border-top:0}
+
+.cause-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.cause-status{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.76rem;font-weight:900}
+.cause-status.one-pass{background:#eff6ff;color:#1d4ed8}
+.cause-status.persistent{background:#fff1f0;color:#b42318}
+.cause-help{margin:8px 0 0}
+.cause-recommendation{margin-top:8px;padding:9px 10px;border-radius:9px;background:#f8fafc;border-left:3px solid var(--blue);font-size:.84rem}
+.cause-insight-box{margin:0 0 12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fafbfc}
+.cause-insight-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #eef2f6}
+.cause-insight-row:last-of-type{border-bottom:0}
+.cause-insight-row small{color:var(--muted)}
+.cause-drill-hint{margin:0 0 12px;padding:9px 11px;border-radius:9px;background:#f8fafc;border:1px solid var(--line)}
+@media(max-width:560px){.cause-insight-row{grid-template-columns:1fr auto}.cause-insight-row small{grid-column:1/-1}}
+
+.rediagnosis-question-block{display:block}
+
+.target-strategy{margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#f8fafc}
+.target-strategy-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.target-strategy-head p{margin:2px 0 0}
+.target-goal-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 10px}
+.target-goal-btn{min-height:58px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:850}
+.target-goal-btn strong{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#eef2f6}
+.target-goal-btn.active{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:var(--blue-soft);color:#1e3a8a}
+.target-goal-btn.active strong{background:var(--blue);color:white}
+.target-goal-summary{margin:0 0 5px;color:var(--ink)}
+.target-excluded-note{font-size:.78rem;color:var(--muted);margin-top:5px}
+@media(max-width:560px){
+  .target-strategy-head{align-items:center}
+  .target-goal-btn{min-height:54px;flex-direction:column;gap:2px}
+}
+
+.choice:disabled{cursor:default;opacity:1}
+
+.build-badge{position:fixed;right:10px;bottom:10px;z-index:20;font-size:.72rem;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.92);color:var(--muted)}
+
+
+/* v22: answer-review transcript and replay */
+.answer-transcript{
+  margin-top:18px;
+  padding:16px 18px;
+  border:1px solid #d7dfec;
+  border-radius:14px;
+  background:#fff;
+}
+.answer-transcript-title{
+  font-weight:800;
+  font-size:1.05rem;
+  margin-bottom:6px;
+}
+.answer-transcript-body{
+  margin-top:12px;
+  display:grid;
+  gap:8px;
+  line-height:1.65;
+}
+.answer-transcript-line{
+  padding:8px 10px;
+  border-radius:10px;
+  background:#f7f9fc;
+}
+.answer-review-actions{
+  margin-top:16px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+@media (max-width:600px){
+  .answer-review-actions > button,
+  .answer-review-actions > span,
+  .answer-review-actions > span > button{
+    width:100%;
+  }
+}

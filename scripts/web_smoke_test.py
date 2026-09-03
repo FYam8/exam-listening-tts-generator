@@ -25,20 +25,34 @@ for marker in [
     'id="exportProgressBtn"',
     'id="progressImportInput"',
     'id="rateSlider"',
-    "なぜ2023年度から？",
+    "年度カードを押すと",
     "Man（男性）",
     "Woman（女性）",
-    "6割ライン",
-    "安定目標",
+    "A</strong><span>60点",
+    "B</strong><span>70点",
+    "C</strong><span>75点",
+    'id="targetGoalButtons"',
     'id="remainingDays"',
+    'id="reviewView"',
+    'id="reviewList"',
+    'id="dashboardHistorySummary"',
+    'id="openHistoryBtn"',
 ]:
     if marker not in html:
         print("Missing required page marker:", marker, file=sys.stderr); raise SystemExit(1)
-for dependency in ['src="storage.js"', 'src="voice_profiles.js"', 'src="study_plan.js"']:
-    if html.find(dependency) < 0 or html.find(dependency) > html.find('src="app.js"'):
+app_match=re.search(r'src="app\.js(?:\?[^"]*)?"',html)
+if not app_match:
+    print("app.js script tag missing",file=sys.stderr); raise SystemExit(1)
+for dependency in ["storage.js","voice_profiles.js","study_plan.js","target_strategy.js"]:
+    dep_match=re.search(rf'src="{re.escape(dependency)}(?:\?[^"]*)?"',html)
+    if not dep_match or dep_match.start()>app_match.start():
         print(f"{dependency} must be loaded before app.js", file=sys.stderr); raise SystemExit(1)
-if html.find('class="card progress-transfer-card"') < html.find('id="voiceStatus"'):
-    print("Progress import/export card must remain below the audio settings", file=sys.stderr); raise SystemExit(1)
+audio_pos=html.find('id="voiceStatus"')
+history_pos=html.find('class="card progress-transfer-card"')
+reset_pos=html.find('id="resetProgressBtn"')
+data_pos=html.find('class="card data-card"')
+if not (audio_pos < history_pos < reset_pos < data_pos):
+    print("Dashboard order must be Audio -> History/Backup -> Reset -> Past-question Data", file=sys.stderr); raise SystemExit(1)
 p=P();p.feed(html)
 js=(WEB/"app.js").read_text(encoding="utf-8")
 refs=set(re.findall(r'els\.([A-Za-z0-9_]+)',js))

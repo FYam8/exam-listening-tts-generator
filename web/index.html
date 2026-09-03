@@ -9,7 +9,7 @@
   <meta name="bingbot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
   <meta name="description" content="英語リスニングのステップ学習用・非公式Webアプリ">
   <title>Listening Step Trainer</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
 <header class="site-header">
@@ -19,7 +19,7 @@
       <h1>Listening Step Trainer</h1>
       <p class="header-sub">過去問診断 → 再診断 → スクリプト反復 → 類題 → 定着確認 → 次年度</p>
     </div>
-    <div class="button-row"><button id="historyBtn" class="ghost light" type="button">初回履歴</button><button id="dashboardBtn" class="ghost light" type="button">ダッシュボード</button></div>
+    <div class="button-row"><button id="dashboardBtn" class="ghost light" type="button">ダッシュボード</button></div>
   </div>
 </header>
 
@@ -30,42 +30,37 @@
   </div>
 
   <section id="dashboardView" class="view">
-    <div class="grid two">
-      <section class="card today-card">
-        <p class="kicker">TODAY</p>
-        <h2>今日やること</h2>
-        <div class="goal-summary" aria-label="学習目標">
-          <span>6割ライン <strong>12/20</strong></span>
-          <span>安定目標 <strong>14/20</strong></span>
+    <section class="card today-card">
+      <p class="kicker">TODAY</p>
+      <h2>今日やること</h2>
+      <div class="target-strategy" aria-label="英語の学習目標">
+        <div class="target-strategy-head">
+          <div>
+            <strong>英語の学習目標</strong>
+            <p class="small">学校公式の最低点ではなく、受験戦略上の目安です。</p>
+          </div>
+          <span id="targetGoalBadge" class="pill">B 70点</span>
         </div>
-        <div id="todayTask"></div>
-        <p id="remainingDays" class="remaining-days"></p>
-        <button id="todayStartBtn" class="primary wide" type="button">今日の学習を始める</button>
-      </section>
-
-      <section class="card">
-        <p class="kicker">DATA</p>
-        <h2>過去問データ</h2>
-        <div id="dataStatus"></div>
-        <div class="button-row">
-          <label id="packInputLabel" class="secondary file-label">Private Packを読み込む
-            <input id="packInput" type="file" accept=".json,application/json">
-          </label>
-          <button id="forgetPackBtn" class="ghost" type="button">保存データを外す</button>
+        <div id="targetGoalButtons" class="target-goal-buttons" role="group" aria-label="目標点を選択">
+          <button type="button" class="target-goal-btn" data-target="60"><strong>A</strong><span>60点</span></button>
+          <button type="button" class="target-goal-btn" data-target="70"><strong>B</strong><span>70点</span></button>
+          <button type="button" class="target-goal-btn" data-target="75"><strong>C</strong><span>75点</span></button>
         </div>
-        <p class="small">この公開許諾済み版は、2019〜2026年度の学習データをページ内に同梱しています。別のPrivate Packを読み込んだ場合も、データはこのブラウザ内に保存されます。</p>
-
-      </section>
-    </div>
+        <p id="targetGoalSummary" class="target-goal-summary small"></p>
+        <p class="small">この設定は「どのA/B/C問題を必須補強にするか」を変えます。リスニング20点を60/70/75点へ単純換算する設定ではありません。</p>
+      </div>
+      <div id="todayTask"></div>
+      <p id="remainingDays" class="remaining-days"></p>
+      <button id="todayStartBtn" class="primary wide" type="button">今日の学習を始める</button>
+    </section>
 
     <section class="card">
       <div class="section-head">
         <div>
           <p class="kicker">ROADMAP</p>
           <h2>2019–2026 学習ロードマップ</h2>
-          <p class="small roadmap-note"><strong>なぜ2023年度から？</strong> 最近の傾向に近い年度で最初に弱点を見つけ、2019〜2022年度で補強するためです。2024年度は中間確認、2025・2026年度は仕上げの模試として残します。</p>
+          <p class="small roadmap-note">年度カードを押すと、実施済み年度は10問をいつでも復習できます。未実施年度は未見性を守るため問題詳細を表示しません。</p>
         </div>
-        <button id="resetProgressBtn" class="danger ghost" type="button">進捗をリセット</button>
       </div>
       <div id="roadmap" class="roadmap"></div>
     </section>
@@ -74,6 +69,7 @@
       <section class="card">
         <p class="kicker">WEAKNESS</p>
         <h2>現在の弱点</h2>
+        <p class="small">「要対策」のボックスを押すと、その技能で間違えた過去問へ直接移動します。</p>
         <div id="weaknessPanel"></div>
       </section>
       <section class="card">
@@ -87,7 +83,7 @@
       <p class="kicker">AUDIO</p>
       <h2>読み上げ設定</h2>
       <div class="grid three">
-        <label class="field"><span>話速</span><input id="rateSlider" type="range" min="0.80" max="1.10" step="0.01" value="1.00"><strong id="rateLabel">1.00×</strong></label>
+        <label class="field"><span>話速</span><input id="rateSlider" type="range" min="0.80" max="1.25" step="0.01" value="1.00"><strong id="rateLabel">1.00×</strong></label>
         <label class="field"><span>Man（男性）</span><select id="maleVoice"></select></label>
         <label class="field"><span>Woman（女性）</span><select id="femaleVoice"></select></label>
       </div>
@@ -96,11 +92,17 @@
         <div class="field"><span>確認</span><button id="voiceTestBtn" class="secondary" type="button">音声テスト</button></div>
       </div>
       <p id="voiceStatus" class="small"></p>
+      <p class="audio-compat-note">iPhoneのアプリ内ブラウザで音声が開始しない場合は、同じURLをSafariで開いてください。再生失敗時は「1回再生済み」にはなりません。</p>
     </section>
 
     <section class="card progress-transfer-card">
-      <p class="kicker">BACKUP</p>
-      <h2>学習履歴の保存</h2>
+      <p class="kicker">HISTORY & BACKUP</p>
+      <h2>学習履歴とバックアップ</h2>
+      <div id="dashboardHistorySummary" class="history-summary"></div>
+      <div class="button-row">
+        <button id="openHistoryBtn" class="secondary" type="button">学習履歴をすべて見る</button>
+      </div>
+      <hr class="soft-rule">
       <p id="storageStatus" class="small"></p>
       <div class="button-row progress-transfer-actions">
         <button id="exportProgressBtn" class="secondary" type="button">進捗をエクスポート</button>
@@ -108,7 +110,29 @@
           <input id="progressImportInput" type="file" accept=".json,application/json">
         </label>
       </div>
-      <p class="small">通常の更新では操作しなくても、このブラウザに学習履歴が残ります。端末変更などに備えて保存したいときだけ使用してください。エクスポートに問題データは含まれません。</p>
+      <p class="small">通常の更新では操作しなくても、このブラウザに学習履歴が残ります。端末変更などに備えて保存したいときだけ使用してください。</p>
+
+      <details class="danger-zone">
+        <summary>高度な操作</summary>
+        <div class="danger-zone-body">
+          <strong>学習履歴をリセット</strong>
+          <p class="small">初回得点・弱点・定着履歴をすべて消します。元に戻せません。</p>
+          <button id="resetProgressBtn" class="danger-button" type="button">進捗を完全にリセット</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="card data-card">
+      <p class="kicker">DATA</p>
+      <h2>過去問データ</h2>
+      <div id="dataStatus"></div>
+      <div class="button-row">
+        <label id="packInputLabel" class="secondary file-label">Private Packを読み込む
+          <input id="packInput" type="file" accept=".json,application/json">
+        </label>
+        <button id="forgetPackBtn" class="ghost" type="button">保存データを外す</button>
+      </div>
+      <p class="small">2019〜2026年度の学習データを自動読み込みします。公開版では利用者が通常ファイルを選ぶ必要はありません。</p>
     </section>
   </section>
 
@@ -125,6 +149,7 @@
         <div><p id="examSectionLabel" class="kicker"></p><h2 id="examStimulusLabel"></h2></div>
         <span class="pill">音声1回</span>
       </div>
+      <div id="examUiError" class="feedback ng hidden" role="alert"></div>
       <div class="audio-box">
         <div><strong id="examAudioStatus">準備完了</strong><p class="small">選択肢は先に確認できます。スクリプトは表示されません。</p></div>
         <button id="examPlayBtn" class="primary" type="button">音声を再生</button>
@@ -165,9 +190,10 @@
       <p class="kicker">STEP 1 / REDIAGNOSE</p>
       <h2 id="rediagnosisTitle"></h2>
       <div class="audio-box">
-        <div><strong id="rediagnosisAudioStatus">正解はまだ非表示です</strong><p class="small">スクリプトなしで、もう1回だけ聞きます。</p></div>
+        <div><strong id="rediagnosisAudioStatus">正解はまだ非表示です</strong><p class="small">選択肢を見ながら、スクリプトなしでもう1回だけ聞きます。正解は「再回答を確定」するまで表示しません。</p></div>
         <button id="rediagnosisPlayBtn" class="primary" type="button">もう1回だけ聞く</button>
       </div>
+      <div id="rediagnosisUiError" class="feedback ng hidden" role="alert"></div>
       <div id="rediagnosisQuestions"></div>
       <div class="button-row end">
         <button id="rediagnosisSubmitBtn" class="primary" type="button">再回答を確定</button>
@@ -203,11 +229,11 @@
       <div id="scriptText" class="script-box"></div>
 
       <h3>ミス原因</h3>
-      <p class="small">「何を問われたか」と「なぜ間違えたか」を分けて記録します。</p>
+      <p class="small">スクリプトを確認した後で選びます。原因は1つだけ選択し、後から変更できます。再診断でも不正解なら選択してください。分からなければ「自分では原因が分からない」で構いません。</p>
       <div id="causePanel"></div>
 
       <div class="button-row end">
-        <button id="startDrillBtn" class="primary" type="button">同タイプの【オリジナル類題】へ</button>
+        <button id="startDrillBtn" class="primary" type="button">スクリプト確認完了 → オリジナル類題へ</button>
       </div>
     </section>
   </section>
@@ -221,16 +247,43 @@
       </div>
     </div>
     <section class="card">
-      <p class="kicker">ORIGINAL PRACTICE</p>
-      <h2>【オリジナル類題】</h2>
+      <p class="kicker">LEVEL 1 / ORIGINAL PRACTICE</p>
+      <h2>【オリジナル類題・弱点ミニ練習】</h2>
       <div class="audio-box">
-        <div><strong id="drillAudioStatus">1回で必要情報を拾う</strong><p class="small">正解後に短い解説を確認できます。</p></div>
+        <div><strong id="drillAudioStatus">1回で必要情報を拾う</strong><p class="small">技能を短く切り出した練習です。必要な弱点では、この後に本番相当類題へ進みます。</p></div>
         <button id="drillPlayBtn" class="primary" type="button">音声を再生</button>
       </div>
+      <p id="drillCauseHint" class="cause-drill-hint small hidden"></p>
+      <div id="drillUiError" class="feedback ng hidden" role="alert"></div>
       <p id="drillQuestion" class="question-text"></p>
       <div id="drillChoices"></div>
       <div class="button-row end"><button id="drillSubmitBtn" class="primary" type="button">回答する</button></div>
       <div id="drillFeedback" class="feedback hidden"></div>
+    </section>
+  </section>
+
+
+  <section id="transferView" class="view hidden">
+    <div class="topline">
+      <button id="transferQuitBtn" class="ghost" type="button">後で続ける</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><strong id="transferLevelTitle">本番相当類題</strong><span id="transferProgress"></span></div>
+        <div class="track"><div id="transferBar" class="bar"></div></div>
+      </div>
+    </div>
+    <section class="card">
+      <p class="kicker">EXAM-LIKE TRANSFER</p>
+      <h2 id="transferHeading">【オリジナル類題・本番相当】</h2>
+      <p id="transferDescription" class="lead"></p>
+      <div id="transferProfile" class="transfer-profile"></div>
+      <div class="audio-box">
+        <div><strong id="transferAudioStatus">準備完了</strong><p class="small">スクリプトは表示しません。過去問に近い情報量で1回で必要情報を拾います。</p></div>
+        <button id="transferPlayBtn" class="primary" type="button">音声を再生</button>
+      </div>
+      <div id="transferUiError" class="feedback ng hidden" role="alert"></div>
+      <div id="transferQuestions"></div>
+      <div class="button-row end"><button id="transferSubmitBtn" class="primary" type="button">回答する</button></div>
+      <div id="transferFeedback" class="feedback hidden"></div>
     </section>
   </section>
 
@@ -243,10 +296,36 @@
         <div><strong id="retentionAudioStatus">準備完了</strong></div>
         <button id="retentionPlayBtn" class="primary" type="button">音声を再生</button>
       </div>
+      <div id="retentionUiError" class="feedback ng hidden" role="alert"></div>
       <p id="retentionQuestion" class="question-text"></p>
       <div id="retentionChoices"></div>
       <div class="button-row end"><button id="retentionSubmitBtn" class="primary" type="button">定着判定</button></div>
       <div id="retentionFeedback" class="feedback hidden"></div>
+    </section>
+  </section>
+
+
+  <section id="reviewView" class="view hidden">
+    <div class="topline">
+      <button id="reviewBackBtn" class="ghost" type="button">ダッシュボードへ</button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><strong id="reviewTitle">復習</strong><span id="reviewCount"></span></div>
+      </div>
+    </div>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="kicker">REVIEW LIBRARY</p>
+          <h2 id="reviewHeading">問題別復習</h2>
+          <p id="reviewDescription" class="small"></p>
+        </div>
+      </div>
+      <div class="difficulty-legend" aria-label="難易度の目安">
+        <span class="difficulty-chip diff-a"><strong>A</strong> 60点目標で優先</span>
+        <span class="difficulty-chip diff-b"><strong>B</strong> 70点目標で追加</span>
+        <span class="difficulty-chip diff-c"><strong>C</strong> 75点目標で追加</span>
+      </div>
+      <div id="reviewList" class="review-list"></div>
     </section>
   </section>
 
@@ -260,14 +339,17 @@
 
 <footer><div class="shell"><p><strong>非公式の合成音声学習ツールです。</strong> 学校の公式ツール・公式音源ではなく、実際の入試の声質・速度・間を完全再現するものではありません。GitHub Pagesの公開対象は <code>web/</code> のみです。</p></div></footer>
 
+<div id="buildBadge" class="build-badge" aria-label="build version">Build v22 · loading</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script src="content-81cacbab924f.js"></script>
-<script src="config.js"></script>
-<script src="storage.js"></script>
-<script src="voice_profiles.js"></script>
-<script src="study_plan.js"></script>
-<script src="original_bank.js"></script>
-<script src="public_demo.js"></script>
-<script src="app.js"></script>
+<script src="content-a4eb4690bf31.js?v=22"></script>
+<script src="config.js?v=22"></script>
+<script src="storage.js?v=22"></script>
+<script src="voice_profiles.js?v=22"></script>
+<script src="study_plan.js?v=22"></script>
+<script src="target_strategy.js?v=22"></script>
+<script src="original_bank.js?v=22-reason1"></script>
+<script src="transfer_bank.js?v=22"></script>
+<script src="public_demo.js?v=22"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>

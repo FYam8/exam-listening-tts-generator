@@ -5,7 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function(){
   "use strict";
 
-  const CURRENT_SCHEMA = 2;
+  const CURRENT_SCHEMA = 6;
   // Intentionally unversioned: future app updates must keep using this key.
   const KEY_NS = String.fromCharCode(119,97,115,101,115,104,105,98,117);
   const PRIMARY_KEY = KEY_NS + "-listening-progress";
@@ -30,7 +30,11 @@
       oldYearsUsedBefore2024: 0,
       bankCursor: {},
       seenBankIds: {},
-      retentionSeen: {}
+      retentionSeen: {},
+      transferSeen: {},
+      targetScore: 70,
+      targetUpdatedAt: null,
+      activeSession: null
     };
   }
 
@@ -52,6 +56,10 @@
     if (!isObject(out.bankCursor)) out.bankCursor = {};
     if (!isObject(out.seenBankIds)) out.seenBankIds = {};
     if (!isObject(out.retentionSeen)) out.retentionSeen = {};
+    if (!isObject(out.transferSeen)) out.transferSeen = {};
+    out.targetScore = [60,70,75].includes(Number(out.targetScore)) ? Number(out.targetScore) : 70;
+    out.targetUpdatedAt = typeof out.targetUpdatedAt === "string" ? out.targetUpdatedAt : null;
+    if (!(out.activeSession == null || isObject(out.activeSession))) out.activeSession = null;
     if (!Number.isFinite(Number(out.oldYearsUsedBefore2024))) out.oldYearsUsedBefore2024 = 0;
     return out;
   }
@@ -204,6 +212,7 @@
     const merged = Object.assign({}, clone(other), clone(earliest));
     merged.causes = mergeRecordMap(current.causes, imported.causes);
     merged.rediagnosis = mergeRecordMap(current.rediagnosis, imported.rediagnosis);
+    merged.diagnostics = mergeRecordMap(current.diagnostics, imported.diagnostics);
     merged.completedGroups = unionArray(current.completedGroups, imported.completedGroups);
     merged.remediationComplete = !!(current.remediationComplete || imported.remediationComplete);
     return merged;
@@ -283,8 +292,26 @@
     out.mastery = mergeMastery(current.mastery, imported.mastery);
     out.seenBankIds = mergeArrayMap(current.seenBankIds, imported.seenBankIds);
     out.retentionSeen = mergeArrayMap(current.retentionSeen, imported.retentionSeen);
+    out.transferSeen = mergeArrayMap(current.transferSeen, imported.transferSeen);
     out.bankCursor = Object.assign({}, imported.bankCursor || {}, current.bankCursor || {});
     out.oldYearsUsedBefore2024 = Math.max(Number(current.oldYearsUsedBefore2024 || 0), Number(imported.oldYearsUsedBefore2024 || 0));
+    const curTargetDate=dateMs(current.targetUpdatedAt), impTargetDate=dateMs(imported.targetUpdatedAt);
+    const currentHasLearning=Object.keys(current.attempts||{}).length>0 || (current.history||[]).length>0 || Object.keys(current.mastery||{}).length>0;
+    if(curTargetDate || impTargetDate){
+      const takeCurrent=curTargetDate>=impTargetDate;
+      out.targetScore=takeCurrent?current.targetScore:imported.targetScore;
+      out.targetUpdatedAt=takeCurrent?current.targetUpdatedAt:imported.targetUpdatedAt;
+    }else if(!currentHasLearning){
+      out.targetScore=imported.targetScore;
+      out.targetUpdatedAt=imported.targetUpdatedAt||null;
+    }else{
+      out.targetScore=current.targetScore;
+      out.targetUpdatedAt=current.targetUpdatedAt||null;
+    }
+    const curSessionDate=dateMs(current.activeSession?.updatedAt), impSessionDate=dateMs(imported.activeSession?.updatedAt);
+    out.activeSession = curSessionDate>=impSessionDate
+      ? (current.activeSession || imported.activeSession || null)
+      : (imported.activeSession || current.activeSession || null);
     out.pending = current.pending || imported.pending || null;
     return normalizeProgress(out);
   }
