@@ -8,6 +8,10 @@ const launch=app.match(/function launchTodayLearning\(\)\{[\s\S]*?\n\}/);
 assert.ok(launch,"launchTodayLearning missing");
 assert.ok(launch[0].includes("const task=computeNextTask()"),"Today button must recompute live task");
 assert.ok(!launch[0].includes("dataset.task"),"Today launcher must not depend on stale data-task");
+assert.ok(launch[0].includes("次の問題を開始できませんでした"),
+  "failed task launch must stop with actionable guidance instead of asking for another identical click");
+assert.ok(!launch[0].includes("もう一度「今日の学習を始める」を押してください"),
+  "failed task launch must not create a repeated-click loop");
 assert.ok(launch[0].includes("for(let guard=0;guard<12;guard++)"),"Today launcher must use bounded chaining");
 assert.ok(launch[0].includes('if(state.currentView!=="dashboardView")return'),
   "launcher must stop once a real interactive learning screen opens");
@@ -37,5 +41,12 @@ assert.ok(app.includes('"結果を確認して次へ"'),"clear result/next label
 // Dashboard button text should make resume intent visible.
 const render=app.match(/function renderDashboard\(\)\{[\s\S]*?\n\}/);
 assert.ok(render && render[0].includes('"続きから次へ進む"'),"resume button wording missing");
+
+const execute=app.match(/function executeLearningTask\(task\)\{[\s\S]*?\n\}/);
+const startDrill=app.match(/function startDrill\([^)]*\)\{[\s\S]*?\n\}/);
+assert.ok(execute&&execute[0].includes('if(task.type==="resume-drill")return startDrill(task.tag)'),
+  "resume-drill must propagate the actual start result");
+assert.ok(startDrill&&startDrill[0].includes("return false")&&startDrill[0].includes("return true"),
+  "Level 1 starter must report whether an interactive screen really opened");
 
 console.log("PASS: Today button recomputes live state, chains through submitted transitions to the next interactive task, and ambiguous 判定へ wording is removed.");

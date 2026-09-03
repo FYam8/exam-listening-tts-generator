@@ -88,7 +88,7 @@ assert.ok(retention.indexOf("renderChoiceGroup(els.retentionChoices") < retentio
 
 // Fresh-start and public cache version must match the current release.
 assert.ok(html.includes("Build v22"),"Build v22 badge missing");
-assert.ok(html.includes('src="app.js?v=22"'),"app.js v21 cache-busting missing");
+assert.ok(html.includes('src="app.js?v=22-today-p0"'),"P0 Today-flow app cache-busting missing");
 assert.ok(html.includes('href="styles.css?v=22"'),"styles.css v21 cache-busting missing");
 
 // There are exactly five interactive answer containers in this application.

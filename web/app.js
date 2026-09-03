@@ -2026,7 +2026,7 @@ function startDrill(tag, extra=false){
   const items=chooseBankItems(tag,extra?2:3,used);
   if(!items.length){
     toast("オリジナル類題データがありません。");
-    showView("dashboardView");renderDashboard();return;
+    showView("dashboardView");renderDashboard();return false;
   }
   state.drill={tag,items,idx:0,answers:[],correct:0,usedIds:[...used,...items.map(x=>x.id)],played:{},phase:extra?"extra":"initial",firstCorrect:extra?state.drill?.correct||0:0,firstTotal:extra?3:0};
   setActiveSession(drillSessionSnapshot("drill"),{save:true});
@@ -2035,6 +2035,7 @@ function startDrill(tag, extra=false){
     if(els.drillPlayBtn) els.drillPlayBtn.disabled=true;
     if(els.drillSubmitBtn) els.drillSubmitBtn.disabled=true;
   }
+  return true;
 }
 function ensureDrillAnswerUi(){
   const d=state.drill,it=d?.items?.[d.idx];
@@ -2627,7 +2628,7 @@ function executeLearningTask(task){
   if(task.type==="resume-active-session")return restoreActiveSession();
   if(task.type==="exam"){startExam(task.year);return true;}
   if(task.type==="resume-remediation"){resumeRemediation(task.year);return true;}
-  if(task.type==="resume-drill"){startDrill(task.tag);return true;}
+  if(task.type==="resume-drill")return startDrill(task.tag);
   if(task.type==="resume-script"){restoreScriptFromPending();return true;}
   if(task.type==="resume-transfer"){resumeTransferFromPending();return true;}
   if(task.type==="retention-transfer"){
@@ -2649,13 +2650,23 @@ function launchTodayLearning(){
     if(task.type==="free"){renderDashboard();return;}
     if(seen.has(sig)){
       renderDashboard();
-      toast("次の学習位置を再計算しました。もう一度「今日の学習を始める」を押してください。");
+      toast("次の問題を開始できませんでした。ページを再読み込みしてください。学習履歴は保持されています。");
       return;
     }
     seen.add(sig);
     const started=executeLearningTask(task);
     if(!started){
-      if(state.currentView==="dashboardView") continue;
+      // A stale exact-resume checkpoint may be cleared by restoreActiveSession().
+      // Recompute only for that recovery case; a Level 1 launch failure must stop
+      // instead of asking the learner to press the same button repeatedly.
+      if(task.type==="resume-active-session"){
+        if(state.currentView==="dashboardView") continue;
+      }
+      if(state.currentView==="dashboardView"){
+        renderDashboard();
+        toast("次の問題を開始できませんでした。ページを再読み込みしてください。学習履歴は保持されています。");
+        return;
+      }
       renderDashboard();
       return;
     }
