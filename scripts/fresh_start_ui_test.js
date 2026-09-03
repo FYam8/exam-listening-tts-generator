@@ -40,7 +40,7 @@ for(const marker of [
 // Visible build ID lets a tester verify that the intended deployment actually loaded.
 assert.ok(html.includes('id="buildBadge"'),"build badge missing");
 assert.ok(html.includes("Build v22"),"v22 build label missing");
-assert.ok(html.includes('src="app.js?v=22-today-p0"'),"P0 Today-flow app cache bust missing");
+assert.ok(html.includes('src="app.js?v=22-daily3"'),"daily-three app cache bust missing");
 assert.ok(html.includes('href="styles.css?v=22"'),"styles.css v21 cache bust missing");
 assert.ok(html.includes('id="examUiError"'),"exam UI error surface missing");
 

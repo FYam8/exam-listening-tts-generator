@@ -48,7 +48,7 @@ assert.ok(fn("renderRetention").includes("r.answer!=null"),"retention answer-rea
 
 // Build marker.
 assert.ok(html.includes("Build v22 · loading"),"v21 loading badge missing");
-assert.ok(html.includes('src="app.js?v=22-today-p0"'),"P0 Today-flow app cache-bust missing");
+assert.ok(html.includes('src="app.js?v=22-daily3"'),"daily-three app cache-bust missing");
 assert.ok(app.includes('els.buildBadge.textContent="Build v22 ✓"'),"v21 runtime badge missing");
 
 console.log("PASS: view registry is complete and all five listening answer surfaces require audio + valid answers before scoring/progression.");

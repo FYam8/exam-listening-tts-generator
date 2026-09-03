@@ -36,6 +36,8 @@ main{padding:24px 0 54px}.hidden{display:none!important}
 .skill-name{font-weight:850}.skill-meta{font-size:.82rem;color:var(--muted)}.mastered{color:var(--green)}.provisional{color:var(--amber)}
 .task-title{font-size:1.25rem;font-weight:900;margin-bottom:5px}.task-meta{color:var(--muted)}.task-badges{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
 .goal-summary{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px}.goal-summary span{padding:5px 9px;border-radius:999px;background:var(--blue-soft);color:#1e3a8a;font-size:.8rem}.goal-summary strong{font-weight:900}.remaining-days{margin:12px 0 2px;padding:9px 11px;border-left:4px solid var(--blue);background:#f8fafc;font-weight:850}
+.daily-progress{margin:22px 0 16px;padding:16px 18px;border-radius:16px;background:#eef4ff;border:1px solid #cbd9ff;color:#13295e}
+.daily-progress strong{display:block;font-size:1.08rem;margin-bottom:4px}.daily-progress p{margin:0}.daily-progress.achieved{background:#edf9f0;border-color:#b8e0c1;color:#14532d}
 .pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;background:var(--blue-soft);color:#1e40af;font-weight:900;font-size:.78rem}
 .topline{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-bottom:14px}.progress-meta{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px}
 .track{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar{height:100%;background:var(--blue);width:0;transition:.2s}

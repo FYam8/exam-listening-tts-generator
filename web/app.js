@@ -37,6 +37,7 @@ const STUDY_PLAN = window.ListeningStudyPlan;
 const TARGET_STRATEGY = window.ListeningTargetStrategy;
 const APP_CONFIG = window.LISTENING_APP_CONFIG || {bundledPackBase64Var:null,hidePackControlsWhenBundled:true};
 const REQUIRED_YEARS = [2019,2020,2021,2022,2023,2024,2025,2026];
+const DAILY_STEP_GOAL = 3;
 
 const els = {};
 const state = {
@@ -66,6 +67,24 @@ function toast(msg){
   clearTimeout(toast.t); toast.t = setTimeout(()=>els.toast.classList.remove("show"), 2600);
 }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
+function localStudyDate(now=new Date()){
+  const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,"0"),d=String(now.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+function dailyCompletedIds(date=localStudyDate()){
+  const ids=state.progress?.dailyActivity?.[date]?.completedBlockIds;
+  return Array.isArray(ids)?[...new Set(ids.filter(id=>typeof id==="string"&&id))]:[];
+}
+function markDailyStep(blockId,date=localStudyDate()){
+  if(!state.progress || !blockId) return false;
+  state.progress.dailyActivity ||= {};
+  const row=state.progress.dailyActivity[date] ||= {completedBlockIds:[]};
+  const ids=new Set(Array.isArray(row.completedBlockIds)?row.completedBlockIds:[]);
+  if(ids.has(blockId)) return false;
+  ids.add(blockId);
+  row.completedBlockIds=[...ids];
+  return true;
+}
 function addDaysISO(days){
   const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+days);
   return d.toISOString().slice(0,10);
@@ -891,14 +910,20 @@ function estimateRemainingForTarget(){
   const needsPractice=mastery.filter(r=>r?.status==="needs-practice").length;
   const projectedRemediation=remainingYears;
   const projectedRetention=remainingYears?Math.min(5,Math.max(2,Math.ceil(remainingYears*.6))):0;
-  let days=remainingYears+activeRemediation+projectedRemediation+provisional.length+needsPractice*2+projectedRetention;
-  if(!days)return {min:0,max:0,remainingYears,activeRemediation};
-  return {min:Math.max(1,days-2),max:days+2,remainingYears,activeRemediation};
+  const steps=remainingYears+activeRemediation+projectedRemediation+provisional.length+needsPractice*2+projectedRetention;
+  if(!steps)return {min:0,max:0,remainingYears,activeRemediation};
+  return {min:Math.max(1,Math.ceil(Math.max(1,steps-2)/DAILY_STEP_GOAL)),max:Math.ceil((steps+2)/DAILY_STEP_GOAL),remainingYears,activeRemediation};
 }
 function renderDashboard(){
   renderTargetStrategy();
   const task=computeNextTask();
   const estimate=estimateRemainingForTarget();
+  const dailyCount=dailyCompletedIds().length;
+  const achieved=dailyCount>=DAILY_STEP_GOAL;
+  els.dailyProgress.classList.toggle("achieved",achieved);
+  els.dailyProgress.innerHTML=achieved
+    ? `<strong>今日の目標を達成しました：${dailyCount}ステップ完了（目標${DAILY_STEP_GOAL}）</strong><p>ここで終了して大丈夫です。余力があれば次の学習へ進めます。</p>`
+    : `<strong>今日の学習：${dailyCount} / ${DAILY_STEP_GOAL} ステップ完了</strong><p>あと${DAILY_STEP_GOAL-dailyCount}ステップで今日の目標達成です。</p>`;
   els.todayTask.innerHTML=`
     <div class="task-title">${esc(task.title)}</div>
     <div class="task-meta">${esc(task.meta||"")}</div>
@@ -908,11 +933,13 @@ function renderDashboard(){
       ${task.type==="resume-active-session"?'<span class="pill">途中保存から再開</span>':""}
     </div>`;
   els.todayStartBtn.disabled = task.type==="free";
-  els.todayStartBtn.textContent = task.type==="resume-active-session" ? "続きから次へ進む" : "今日の学習を始める";
+  els.todayStartBtn.textContent = task.type==="resume-active-session" ? "続きから次へ進む"
+    : achieved ? "さらに1ステップ進める"
+    : dailyCount>0 ? "今日の学習を続ける" : "今日の学習を始める";
   els.todayStartBtn.dataset.task = JSON.stringify(task);
   els.remainingDays.textContent=estimate.max===0
     ? "予定していた初回診断と補強が完了しました。"
-    : `完了までの目安：あと約${estimate.min}〜${estimate.max}日（毎日1つ進めた場合）`;
+    : `完了までの目安：あと約${estimate.min}〜${estimate.max}日（毎日3ステップ進めた場合）`;
 
   if(state.pack){
     const auto = state.packSource==="bundled";
@@ -1221,13 +1248,15 @@ function finishExam(){
     causes:{},rediagnosis:{},retakes:[]
   };
   state.progress.attempts[e.year] ||= {};
-  if(!state.progress.attempts[e.year].initial){
+  const isFirstAttempt=!state.progress.attempts[e.year].initial;
+  if(isFirstAttempt){
     state.progress.attempts[e.year].initial=record;
     state.progress.history.unshift({year:e.year,date:record.date,score,aMisses,type:"initial"});
   }else{
     state.progress.attempts[e.year].retakes ||= [];
     state.progress.attempts[e.year].retakes.push(record);
   }
+  if(isFirstAttempt) markDailyStep(`exam-initial:${e.year}`);
   state.progress.activeSession=null;
   saveProgress();
   if(!e.retake){
@@ -1933,6 +1962,7 @@ function transferPassed(){
       const prev=state.progress.mastery[tag]||{};
       state.progress.mastery[tag]={...prev,status:"mastered",retentionMode:t.mode,linkedTags:[...(t.tags||[])],updated:new Date().toISOString(),lastScore:`transfer retention ${t.correct}/${t.totalQuestions}`};
     });
+    markDailyStep(`retention-transfer:${t.mode}:${(t.tags||[]).slice().sort().join("+")}:${(t.items||[]).map(x=>x.id).join("+")}`);
     state.progress.activeSession=null;
     saveProgress();
     toast("本番相当の情報量でも定着を確認できました。");
@@ -1944,6 +1974,7 @@ function transferPassed(){
       const prev=state.progress.mastery[tag]||{};
       state.progress.mastery[tag]={...prev,status:"provisional",due:addDaysISO(3),retentionMode:t.mode,linkedTags:[...(t.tags||[])],sourceProfile:t.sourceProfile||prev.sourceProfile,updated:new Date().toISOString(),lastScore:`transfer ${t.correct}/${t.totalQuestions}`};
     });
+    markDailyStep(`recovery-transfer:${t.mode}:${(t.tags||[]).slice().sort().join("+")}:${(t.items||[]).map(x=>x.id).join("+")}`);
     state.progress.pending=null;state.progress.activeSession=null;saveProgress();
     showView("dashboardView");renderDashboard();
     return;
@@ -1965,6 +1996,9 @@ function transferFailed(){
     const prev=state.progress.mastery[tag]||{};
     state.progress.mastery[tag]={...prev,status:"needs-practice",retentionMode:t.mode,sourceProfile:t.sourceProfile||prev.sourceProfile,updated:new Date().toISOString(),lastScore:`transfer ${t.correct}/${t.totalQuestions}`};
   });
+  if(t.context==="retention"){
+    markDailyStep(`retention-transfer:${t.mode}:${tags.slice().sort().join("+")}:${(t.items||[]).map(x=>x.id).join("+")}`);
+  }
   saveProgress();
   if(t.context==="remediation" && state.progress.pending?.type==="drill-sequence"){
     state.progress.pending.stage="script";
@@ -1973,9 +2007,10 @@ function transferFailed(){
     restoreScriptFromPending();
   }else{
     state.progress.pending={type:"retention-recovery",stage:"drill",tags:[...tags],index:0,mode:t.mode,sourceProfile:t.sourceProfile||null};
+    state.progress.activeSession=null;
     saveProgress();
-    alert("本番相当の定着確認で基準未達でした。関連する弱点をミニ練習からやり直します。");
-    startDrill(tags[0]);
+    toast("本番相当の定着確認は完了しました。次は関連する弱点をミニ練習からやり直します。");
+    showView("dashboardView");renderDashboard();
   }
 }
 function resumeTransferFromPending(){
@@ -2209,6 +2244,9 @@ function provisionalPass(tag,correct,total){
   }
 
   state.progress.mastery[tag]={...prev,status:"provisional",due:addDaysISO(3),retentionMode:"mini",lastScore:`mini ${correct}/${total}`,updated:new Date().toISOString()};
+  if(prev.status==="needs-practice"){
+    markDailyStep(`recovery-mini:${tag}:${(state.drill?.usedIds||[]).join("+")}`);
+  }
   state.progress.activeSession=null;
   saveProgress();
   showView("dashboardView");renderDashboard();
@@ -2254,15 +2292,7 @@ function completeCurrentRemediationGroup(){
 
   const allDone=(att.wrongQids||[]).every(qid=>completedRemediationQidSet(p.year).has(qid));
   att.remediationComplete=allDone || !(att.wrongQids||[]).length;
-
-  if(r && r.year===p.year && r.idx<r.groups.length-1){
-    r.idx++;
-    state.progress.pending=null;
-    state.progress.activeSession=null;
-    setActiveSession(rediagnosisSessionSnapshot("rediagnosis"),{save:false});
-    saveProgress();
-    showView("rediagnosisView");renderRediagnosis();return;
-  }
+  markDailyStep(`remediation:${p.year}:${processed.slice().sort().join("+")}`);
   state.progress.pending=null;
   state.progress.activeSession=null;
   saveProgress();
@@ -2396,17 +2426,19 @@ function submitRetention(){
     </div>`;
   if(ok){
     state.progress.mastery[r.tag]={status:"mastered",updated:new Date().toISOString(),lastScore:"retention 1/1"};
+    markDailyStep(`retention-mini:${r.tag}:${r.item.id}`);
     state.progress.activeSession=null;saveProgress();
     els.retentionFeedback.innerHTML=`<strong>○ 定着</strong><p>${esc(r.item.explanation)}</p>${reviewBlock}`;
     $("retentionNextAction").innerHTML='<button id="retHome" class="primary" type="button">ダッシュボードへ</button>';
     $("retHome").addEventListener("click",()=>{showView("dashboardView");renderDashboard();});
   }else{
     state.progress.mastery[r.tag]={status:"needs-practice",updated:new Date().toISOString(),lastScore:"retention 0/1"};
+    markDailyStep(`retention-mini:${r.tag}:${r.item.id}`);
     setActiveSession(retentionSessionSnapshot("retention-failed"),{save:false});saveProgress();
     els.retentionFeedback.innerHTML=`<strong>× もう一度補強</strong><p>正解: ${KANA[r.item.correct]} ${esc(r.item.choices[r.item.correct])}</p><p>${esc(r.item.explanation)}</p>${reviewBlock}`;
-    $("retentionNextAction").innerHTML='<button id="retDrill" class="primary" type="button">3問類題へ戻る</button>';
+    $("retentionNextAction").innerHTML='<button id="retDrill" class="primary" type="button">ダッシュボードへ</button>';
     $("retDrill").addEventListener("click",()=>{
-      state.progress.pending=null;state.progress.activeSession=null;saveProgress();startDrill(r.tag);
+      showView("dashboardView");renderDashboard();
     });
   }
   const replayBtn=$("retentionReplayAfterAnswer");
@@ -2787,7 +2819,7 @@ function bind(){
 function cacheEls(){
   const ids=[
     "dashboardView","examView","scoreOnlyView","rediagnosisView","scriptView","drillView","transferView","retentionView","reviewView","historyView",
-    "dashboardBtn","targetGoalBadge","targetGoalButtons","targetGoalSummary","todayTask","todayStartBtn","remainingDays","dataStatus","packInput","packInputLabel","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
+    "dashboardBtn","targetGoalBadge","targetGoalButtons","targetGoalSummary","dailyProgress","todayTask","todayStartBtn","remainingDays","dataStatus","packInput","packInputLabel","forgetPackBtn","resetProgressBtn","roadmap","weaknessPanel","retentionPanel",
     "storageStatus","exportProgressBtn","progressImportInput","dashboardHistorySummary","openHistoryBtn",
     "reviewBackBtn","reviewTitle","reviewCount","reviewHeading","reviewDescription","reviewList",
     "rateSlider","rateLabel","maleVoice","femaleVoice","narratorVoice","voiceTestBtn","voiceStatus","toast",

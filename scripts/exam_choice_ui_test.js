@@ -30,9 +30,10 @@ assert.ok(play[0].includes("回答選択肢を表示できないため、音声�
   "audio failure guidance missing");
 
 // Public asset URLs must be cache-busted so an old app.js cannot be mixed with a new index.html.
-assert.ok(/src="app\.js\?v=22-today-p0"/.test(html),"P0 Today-flow app.js cache-busting version missing");
+assert.ok(/src="app\.js\?v=22-daily3"/.test(html),"daily-three app.js cache-busting version missing");
 assert.ok(/href="styles\.css\?v=22"/.test(html),"styles.css cache-busting version missing");
-for(const dep of ["storage.js","study_plan.js","target_strategy.js","transfer_bank.js"]){
+assert.ok(html.includes('src="storage.js?v=22-daily3"'),"daily storage cache-busting missing");
+for(const dep of ["study_plan.js","target_strategy.js","transfer_bank.js"]){
   assert.ok(html.includes(`src="${dep}?v=22"`),`cache-busting missing for ${dep}`);
 }
 assert.ok(html.includes('src="original_bank.js?v=22-reason1"'),"updated original bank cache-busting version missing");

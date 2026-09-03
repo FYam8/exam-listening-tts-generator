@@ -19,7 +19,7 @@ assert.ok(app.includes("「続きから次へ進む」で同じ続きから再�
 assert.ok(!app.includes("「今日の学習を始める」で同じ続きから再開できます"),"stale resume button wording remains");
 
 assert.ok(html.includes("Build v22 · loading"),"v22 loading marker missing");
-assert.ok(html.includes('src="app.js?v=22-today-p0"'),"P0 Today-flow app cache bust missing");
+assert.ok(html.includes('src="app.js?v=22-daily3"'),"daily-three app cache bust missing");
 assert.ok(app.includes('els.buildBadge.textContent="Build v22 ✓"'),"v22 runtime marker missing");
 assert.ok(app.includes("Build v22を確認して再読み込みしてください"),"rediagnosis recovery message is not Build v22");
 assert.ok(!app.includes("Build v19を確認して再読み込みしてください"),"stale Build v19 rediagnosis guidance remains");

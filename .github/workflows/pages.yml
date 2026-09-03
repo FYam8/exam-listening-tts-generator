@@ -53,6 +53,8 @@ jobs:
         run: node scripts/resume_checkpoint_test.js
       - name: Today-flow tests
         run: node scripts/today_flow_test.js
+      - name: Daily three-step tests
+        run: node scripts/daily_three_steps_test.js
       - name: Script-forward tests
         run: node scripts/script_forward_test.js
       - name: Exam-choice UI tests
