@@ -14,7 +14,7 @@ const REQUEST_TIMEOUT_MS=15_000;
 const te=new TextEncoder();
 let running=false,lastControlRefreshAt=0,timer=null;
 
-function apiBase(){return String(window.__WASESHIBU_PROGRESS_API__||API_DEFAULT).replace(/\/+$/,'')}
+function apiBase(){const override=window[`__${KEY_NS.toUpperCase()}_PROGRESS_API__`];return String(override||API_DEFAULT).replace(/\/+$/,'')}
 function canonicalize(v){return Array.isArray(v)?v.map(canonicalize):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonicalize(v[k])])):v}
 const canonicalJson=v=>JSON.stringify(canonicalize(v));
 async function sha256Hex(v){const d=await crypto.subtle.digest('SHA-256',te.encode(String(v)));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
