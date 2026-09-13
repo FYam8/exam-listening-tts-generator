@@ -3,6 +3,8 @@ name: Deploy public listening app
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -87,6 +89,7 @@ jobs:
           node --check web/app.js
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: verify
     environment:
       name: github-pages
