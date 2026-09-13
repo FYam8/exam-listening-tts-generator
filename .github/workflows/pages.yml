@@ -65,6 +65,8 @@ jobs:
         run: node scripts/all_choice_surfaces_test.js
       - name: E2E state-guard tests
         run: node scripts/e2e_state_guard_test.js
+      - name: Listening cloud-progress guards
+        run: node scripts/listening_cloud_progress_test.js
       - name: v21 user-UX regression test
         run: node scripts/v21_user_ux_test.js
       - name: Install Playwright browser
@@ -76,6 +78,7 @@ jobs:
       - name: JavaScript syntax checks
         run: |
           node --check web/config.js
+          node --check web/progress-sync.js
           node --check web/storage.js
           node --check web/voice_profiles.js
           node --check web/study_plan.js
