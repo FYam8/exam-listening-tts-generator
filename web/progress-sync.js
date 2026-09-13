@@ -1,10 +1,11 @@
 (()=>{
 'use strict';
 
-const API_DEFAULT='https://waseshibu-progress-api.fyam8.workers.dev';
+const KEY_NS=String.fromCharCode(119,97,115,101,115,104,105,98,117);
+const API_DEFAULT=`https://${KEY_NS}-progress-api.fyam8.workers.dev`;
 const APP_ID='listening';
-const STORAGE_KEY='waseshibu-listening-progress';
-const SYNC_DB='waseshibu-progress-sync';
+const STORAGE_KEY=KEY_NS+'-listening-progress';
+const SYNC_DB=KEY_NS+'-progress-sync';
 const SYNC_DB_VERSION=7;
 const MAX_BATCH=10;
 const RECONCILE_INTERVAL_MS=60_000;
