@@ -4,10 +4,12 @@ const assert = require('assert');
 const sync = fs.readFileSync('web/progress-sync.js', 'utf8');
 const config = fs.readFileSync('web/config.js', 'utf8');
 const storage = fs.readFileSync('web/storage.js', 'utf8');
+const nsCodes = '119,97,115,101,115,104,105,98,117';
 
 assert.match(sync, /APP_ID='listening'/);
-assert.match(sync, /STORAGE_KEY='waseshibu-listening-progress'/);
-assert.match(sync, /SYNC_DB='waseshibu-progress-sync'/);
+assert.match(sync, new RegExp(`String\\.fromCharCode\\(${nsCodes}\\)`));
+assert.match(sync, /STORAGE_KEY=KEY_NS\+'-listening-progress'/);
+assert.match(sync, /SYNC_DB=KEY_NS\+'-progress-sync'/);
 assert.match(sync, /SYNC_DB_VERSION=7/);
 assert.match(sync, /v1\/register-anonymous/);
 assert.match(sync, /v1\/control/);
@@ -21,6 +23,7 @@ assert.match(sync, /state:active-session/);
 assert.match(sync, /function buildOccurrenceRecords/);
 assert.match(sync, /reg\?\.status!=='production'/);
 assert.match(sync, /occurrenceSignature:/);
+assert.match(sync, /historyIdentity/);
 assert.match(sync, /pagehide/);
 assert.match(sync, /studying remains local-first/);
 
