@@ -49,4 +49,17 @@ has(config, 'catch {}', 'loader failure isolation');
 has(sync, "canonicalJson({eventType:record.eventType,payload:record.payload})", 'timestamp-independent state fingerprint');
 lacks(sync, 'canonicalJson({eventType:record.eventType,occurredAt:record.occurredAt,payload:record.payload})', 'timestamp-sensitive state fingerprint');
 
+// Cloud "today" must use the same local-calendar boundary as the learning app, not UTC.
+has(sync, 'function localStudyDate', 'local study date helper');
+has(sync, 'const today=localStudyDate()', 'local daily progress lookup');
+lacks(sync, "const today=new Date().toISOString().slice(0,10)", 'UTC daily progress lookup');
+
+// Retention is represented by mastery provisional/mastered state. `pending` is also used
+// for remediation/drill/transfer checkpoints and must not be treated as retention debt.
+has(sync, "function retentionRows(s)", 'retention mastery projection');
+has(sync, "x.status==='provisional'||x.status==='mastered'", 'retention status filter');
+has(sync, "retention.filter(x=>x.status==='provisional').length", 'pending retention count');
+lacks(sync, 'total:s.pending?1:0', 'checkpoint-as-retention mapping');
+lacks(sync, 'completed:!s.pending', 'checkpoint-as-retention completion');
+
 console.log('Listening cloud progress sync guards: CLEAN');
